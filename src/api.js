@@ -19,6 +19,10 @@ function storeAccessToken(token) {
   }
 }
 
+function staticRequest(callback) {
+  return Promise.resolve().then(callback);
+}
+
 async function readResponse(res) {
   if (res.status === 204) return null;
   const text = await res.text();
@@ -51,7 +55,7 @@ export async function loginUser(username, password) {
 }
 
 export function fetchCurrentUser() {
-  if (STATIC_MODE) return staticApi.fetchCurrentUser();
+  if (STATIC_MODE) return staticRequest(() => staticApi.fetchCurrentUser());
   return apiRequest('/api/auth/me');
 }
 
@@ -99,27 +103,27 @@ async function apiRequest(path, options = {}) {
 }
 
 export function fetchTasks() {
-  if (STATIC_MODE) return staticApi.fetchTasks();
+  if (STATIC_MODE) return staticRequest(() => staticApi.fetchTasks());
   return apiRequest('/api/tasks');
 }
 
 export function fetchArchivedTasks() {
-  if (STATIC_MODE) return staticApi.fetchArchivedTasks();
+  if (STATIC_MODE) return staticRequest(() => staticApi.fetchArchivedTasks());
   return apiRequest('/api/tasks/archived');
 }
 
 export function fetchAdminSettings() {
-  if (STATIC_MODE) return staticApi.fetchAdminSettings();
+  if (STATIC_MODE) return staticRequest(() => staticApi.fetchAdminSettings());
   return apiRequest('/api/admin/settings');
 }
 
 export function fetchAdminUsers() {
-  if (STATIC_MODE) return staticApi.fetchAdminUsers();
+  if (STATIC_MODE) return staticRequest(() => staticApi.fetchAdminUsers());
   return apiRequest('/api/admin/users');
 }
 
 export function createAdminUser(user) {
-  if (STATIC_MODE) return staticApi.createAdminUser(user);
+  if (STATIC_MODE) return staticRequest(() => staticApi.createAdminUser(user));
   return apiRequest('/api/admin/users', {
     method: 'POST',
     body: JSON.stringify(user)
@@ -127,7 +131,7 @@ export function createAdminUser(user) {
 }
 
 export function updateAdminUser(id, user) {
-  if (STATIC_MODE) return staticApi.updateAdminUser(id, user);
+  if (STATIC_MODE) return staticRequest(() => staticApi.updateAdminUser(id, user));
   return apiRequest(`/api/admin/users/${id}`, {
     method: 'PUT',
     body: JSON.stringify(user)
@@ -135,12 +139,12 @@ export function updateAdminUser(id, user) {
 }
 
 export function fetchContributionStats() {
-  if (STATIC_MODE) return staticApi.fetchContributionStats();
+  if (STATIC_MODE) return staticRequest(() => staticApi.fetchContributionStats());
   return apiRequest('/api/admin/contribution-stats');
 }
 
 export function saveAdminSettings(settings) {
-  if (STATIC_MODE) return staticApi.saveAdminSettings(settings);
+  if (STATIC_MODE) return staticRequest(() => staticApi.saveAdminSettings(settings));
   return apiRequest('/api/admin/settings', {
     method: 'PUT',
     body: JSON.stringify(settings)
@@ -148,38 +152,38 @@ export function saveAdminSettings(settings) {
 }
 
 export function seedDemoTasks() {
-  if (STATIC_MODE) return staticApi.seedDemoTasks();
+  if (STATIC_MODE) return staticRequest(() => staticApi.seedDemoTasks());
   return apiRequest('/api/admin/seed-demo', {
     method: 'POST'
   });
 }
 
 export function removeDemoTasks() {
-  if (STATIC_MODE) return staticApi.removeDemoTasks();
+  if (STATIC_MODE) return staticRequest(() => staticApi.removeDemoTasks());
   return apiRequest('/api/admin/remove-demo', {
     method: 'POST'
   });
 }
 
 export function fetchTaskHistory(id) {
-  if (STATIC_MODE) return staticApi.fetchTaskHistory(id);
+  if (STATIC_MODE) return staticRequest(() => staticApi.fetchTaskHistory(id));
   return apiRequest(`/api/tasks/${id}/history`);
 }
 
 export function fetchShiftReadStatus() {
-  if (STATIC_MODE) return staticApi.fetchShiftReadStatus();
+  if (STATIC_MODE) return staticRequest(() => staticApi.fetchShiftReadStatus());
   return apiRequest('/api/tasks/read-status');
 }
 
 export function markShiftTaskRead(id) {
-  if (STATIC_MODE) return staticApi.markShiftTaskRead(id);
+  if (STATIC_MODE) return staticRequest(() => staticApi.markShiftTaskRead(id));
   return apiRequest(`/api/tasks/${id}/read`, {
     method: 'POST'
   });
 }
 
 export function markShiftTasksRead(ids) {
-  if (STATIC_MODE) return staticApi.markShiftTasksRead(ids);
+  if (STATIC_MODE) return staticRequest(() => staticApi.markShiftTasksRead(ids));
   return apiRequest('/api/tasks/read-status', {
     method: 'POST',
     body: JSON.stringify({ ids })
@@ -187,7 +191,7 @@ export function markShiftTasksRead(ids) {
 }
 
 export function createTask(task) {
-  if (STATIC_MODE) return staticApi.createTask(task);
+  if (STATIC_MODE) return staticRequest(() => staticApi.createTask(task));
   return apiRequest('/api/tasks', {
     method: 'POST',
     body: JSON.stringify(task)
@@ -195,7 +199,7 @@ export function createTask(task) {
 }
 
 export function updateTask(id, task) {
-  if (STATIC_MODE) return staticApi.updateTask(id, task);
+  if (STATIC_MODE) return staticRequest(() => staticApi.updateTask(id, task));
   return apiRequest(`/api/tasks/${id}`, {
     method: 'PUT',
     body: JSON.stringify(task)
@@ -203,14 +207,14 @@ export function updateTask(id, task) {
 }
 
 export function deleteTask(id) {
-  if (STATIC_MODE) return staticApi.deleteTask(id);
+  if (STATIC_MODE) return staticRequest(() => staticApi.deleteTask(id));
   return apiRequest(`/api/tasks/${id}`, {
     method: 'DELETE'
   });
 }
 
 export function restoreTask(id) {
-  if (STATIC_MODE) return staticApi.restoreTask(id);
+  if (STATIC_MODE) return staticRequest(() => staticApi.restoreTask(id));
   return apiRequest(`/api/tasks/${id}/restore`, {
     method: 'POST'
   });

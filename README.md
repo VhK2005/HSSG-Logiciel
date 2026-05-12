@@ -134,6 +134,20 @@ Publier vers `VhK2005/HSSG-Logiciel` :
 
 Le script demande un token GitHub en saisie masquée. Ne collez jamais ce token dans un chat, un fichier ou une commande enregistrée dans l’historique.
 
+Pour éviter de le retaper à chaque publication, acceptez la sauvegarde proposée par le script ou lancez :
+
+```powershell
+.\scripts\publish-github.ps1 -SaveToken
+```
+
+Le token est alors stocké via le chiffrement Windows de votre utilisateur dans `%APPDATA%\OverviewReceptionHotel\github-token.xml`.
+
+Pour supprimer ce token enregistré :
+
+```powershell
+.\scripts\publish-github.ps1 -ClearSavedToken
+```
+
 ## Fonctionnement
 
 ### Passation de shift

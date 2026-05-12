@@ -3,7 +3,9 @@ param(
   [string]$Repo = "HSSG-Logiciel",
   [string]$Branch = "main",
   [string]$Message = "Publish Overview Reception Hotel",
-  [switch]$DryRun
+  [switch]$DryRun,
+  [switch]$SaveToken,
+  [switch]$ClearSavedToken
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,6 +19,35 @@ function ConvertFrom-SecureStringPlainText {
   } finally {
     [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
   }
+}
+
+function Get-TokenCachePath {
+  $dir = Join-Path $env:APPDATA "OverviewReceptionHotel"
+  if (-not (Test-Path $dir)) {
+    New-Item -ItemType Directory -Path $dir | Out-Null
+  }
+  Join-Path $dir "github-token.xml"
+}
+
+function Read-CachedToken {
+  $path = Get-TokenCachePath
+  if (-not (Test-Path $path)) { return $null }
+
+  try {
+    $secureToken = Import-Clixml -Path $path
+    ConvertFrom-SecureStringPlainText $secureToken
+  } catch {
+    Write-Warning "Saved token could not be read. It will be ignored."
+    $null
+  }
+}
+
+function Save-CachedToken {
+  param([securestring]$SecureToken)
+
+  $path = Get-TokenCachePath
+  $SecureToken | Export-Clixml -Path $path
+  Write-Host "Token saved for this Windows user: $path"
 }
 
 function Get-RelativeUploadPath {
@@ -81,11 +112,36 @@ if ($DryRun) {
   exit 0
 }
 
+if ($ClearSavedToken) {
+  $cachePath = Get-TokenCachePath
+  if (Test-Path $cachePath) {
+    Remove-Item -LiteralPath $cachePath -Force
+    Write-Host "Saved token removed."
+  } else {
+    Write-Host "No saved token found."
+  }
+  exit 0
+}
+
 if ($env:GITHUB_TOKEN) {
   $script:Token = $env:GITHUB_TOKEN
 } else {
-  Write-Host "Paste a GitHub token with Contents write access. It will not be displayed."
-  $script:Token = ConvertFrom-SecureStringPlainText (Read-Host "GitHub token" -AsSecureString)
+  $cachedToken = Read-CachedToken
+  if ($cachedToken) {
+    $script:Token = $cachedToken
+  } else {
+    Write-Host "Paste a GitHub token with Contents write access. It will not be displayed."
+    $secureToken = Read-Host "GitHub token" -AsSecureString
+    $script:Token = ConvertFrom-SecureStringPlainText $secureToken
+    if ($SaveToken) {
+      Save-CachedToken $secureToken
+    } else {
+      $answer = Read-Host "Save this token encrypted for future publishes? (y/N)"
+      if ($answer -match "^(y|yes|o|oui)$") {
+        Save-CachedToken $secureToken
+      }
+    }
+  }
 }
 
 if (-not $script:Token) {
