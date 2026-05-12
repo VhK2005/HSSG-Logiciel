@@ -122,6 +122,22 @@ export function fetchAdminSettings() {
   return apiRequest('/api/admin/settings');
 }
 
+export function fetchWorkspaceData() {
+  if (STATIC_MODE && BROWSER_API.fetchWorkspaceData) {
+    return staticRequest(() => BROWSER_API.fetchWorkspaceData());
+  }
+
+  if (STATIC_MODE) {
+    return staticRequest(async () => ({
+      tasks: await BROWSER_API.fetchTasks(),
+      archivedTasks: await BROWSER_API.fetchArchivedTasks(),
+      settings: await BROWSER_API.fetchAdminSettings()
+    }));
+  }
+
+  return apiRequest('/api/bootstrap');
+}
+
 export function fetchAdminUsers() {
   if (STATIC_MODE) return staticRequest(() => BROWSER_API.fetchAdminUsers());
   return apiRequest('/api/admin/users');

@@ -23,6 +23,7 @@ import {
   deleteTask,
   listActiveTasks,
   listArchivedTasks,
+  listWorkspaceTasks,
   listTaskHistory,
   listTaskReadStatus,
   markTaskRead,
@@ -57,6 +58,17 @@ app.get('/api/auth/me', requireAccess, me);
 app.get('/api/admin/settings', requireAccess, (_req, res, next) => {
   try {
     res.json(getAdminSettings());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/bootstrap', requireAccess, (_req, res, next) => {
+  try {
+    res.json({
+      ...listWorkspaceTasks(),
+      settings: getAdminSettings()
+    });
   } catch (error) {
     next(error);
   }

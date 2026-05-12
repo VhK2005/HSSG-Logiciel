@@ -14,7 +14,16 @@ const RAW_KEY = String(
 
 const SUPABASE_KEY = RAW_KEY || (RAW_URL.startsWith('sb_') ? RAW_URL : '');
 const SUPABASE_URL = normalizeSupabaseUrl(RAW_URL, SUPABASE_KEY);
+const REMOTE_CACHE_MS = Math.max(
+  500,
+  Number(import.meta.env.VITE_SUPABASE_CACHE_MS || 2500) || 2500
+);
 let operationQueue = Promise.resolve();
+let remoteCache = {
+  db: null,
+  fetchedAt: 0
+};
+let remoteFetch = null;
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -32,6 +41,15 @@ function writeLocalDb(db) {
   if (db) {
     writeStorage(DB_KEY, JSON.stringify(db));
   }
+}
+
+function rememberRemoteDb(db) {
+  if (!db) return;
+  remoteCache = {
+    db: clone(db),
+    fetchedAt: Date.now()
+  };
+  writeLocalDb(db);
 }
 
 function base64UrlDecode(value) {
@@ -113,12 +131,35 @@ async function supabaseRequest(url, options = {}) {
   return data;
 }
 
-async function fetchRemoteDb() {
-  const rows = await supabaseRequest(
+async function fetchRemoteDb({ force = false } = {}) {
+  if (
+    !force &&
+    remoteCache.db &&
+    Date.now() - remoteCache.fetchedAt < REMOTE_CACHE_MS
+  ) {
+    return clone(remoteCache.db);
+  }
+
+  if (!force && remoteFetch) {
+    const db = await remoteFetch;
+    return db ? clone(db) : null;
+  }
+
+  remoteFetch = supabaseRequest(
     `${tableEndpoint()}?id=eq.${encodeURIComponent(STATE_ID)}&select=data,updated_at`
-  );
-  const row = Array.isArray(rows) ? rows[0] : null;
-  return row?.data && typeof row.data === 'object' ? row.data : null;
+  )
+    .then((rows) => {
+      const row = Array.isArray(rows) ? rows[0] : null;
+      const db = row?.data && typeof row.data === 'object' ? row.data : null;
+      if (db) rememberRemoteDb(db);
+      return db;
+    })
+    .finally(() => {
+      remoteFetch = null;
+    });
+
+  const db = await remoteFetch;
+  return db ? clone(db) : null;
 }
 
 async function saveRemoteDb(db) {
@@ -133,6 +174,7 @@ async function saveRemoteDb(db) {
       updated_at: new Date().toISOString()
     })
   });
+  rememberRemoteDb(db);
 }
 
 function queue(operation) {
@@ -240,9 +282,7 @@ function changedSince(before, after) {
 function withSync(callback, options = {}) {
   return queue(async () => {
     const remoteDb = await fetchRemoteDb();
-    if (remoteDb) {
-      writeLocalDb(remoteDb);
-    }
+    if (remoteDb) writeLocalDb(remoteDb);
 
     const before = readLocalDb();
     if (options.reserve) {
@@ -254,7 +294,7 @@ function withSync(callback, options = {}) {
     const shouldSave = options.write || !remoteDb || changedSince(before, after);
 
     if (shouldSave && after) {
-      const latest = await fetchRemoteDb();
+      const latest = await fetchRemoteDb({ force: true });
       const merged = mergeDbChanges(before, after, latest);
       writeLocalDb(merged);
       await saveRemoteDb(merged);
@@ -286,6 +326,14 @@ export function fetchArchivedTasks() {
 
 export function fetchAdminSettings() {
   return withSync(() => staticApi.fetchAdminSettings());
+}
+
+export function fetchWorkspaceData() {
+  return withSync(() => ({
+    tasks: staticApi.fetchTasks(),
+    archivedTasks: staticApi.fetchArchivedTasks(),
+    settings: staticApi.fetchAdminSettings()
+  }));
 }
 
 export function saveAdminSettings(settings) {

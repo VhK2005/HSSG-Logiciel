@@ -43,6 +43,7 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_TABLE: ${{ vars.VITE_SUPABASE_TABLE }}
           VITE_SUPABASE_STATE_ID: ${{ vars.VITE_SUPABASE_STATE_ID }}
+          VITE_SUPABASE_CACHE_MS: ${{ vars.VITE_SUPABASE_CACHE_MS }}
           VITE_API_BASE: ${{ vars.VITE_API_BASE }}
 
       - name: Configure Pages

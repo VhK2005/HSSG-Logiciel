@@ -153,8 +153,8 @@ export function runAutomations() {
   tx();
 }
 
-export function listActiveTasks() {
-  runAutomations();
+export function listActiveTasks({ runAutomation = true } = {}) {
+  if (runAutomation) runAutomations();
   return db
     .prepare(`
       SELECT * FROM tasks
@@ -168,8 +168,8 @@ export function listActiveTasks() {
     .map(mapTask);
 }
 
-export function listArchivedTasks() {
-  runAutomations();
+export function listArchivedTasks({ runAutomation = true } = {}) {
+  if (runAutomation) runAutomations();
   return db
     .prepare(`
       SELECT * FROM tasks
@@ -178,6 +178,14 @@ export function listArchivedTasks() {
     `)
     .all()
     .map(mapTask);
+}
+
+export function listWorkspaceTasks() {
+  runAutomations();
+  return {
+    tasks: listActiveTasks({ runAutomation: false }),
+    archivedTasks: listArchivedTasks({ runAutomation: false })
+  };
 }
 
 export function createTask(payload, user) {

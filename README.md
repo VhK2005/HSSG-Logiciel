@@ -44,6 +44,7 @@ VITE_SUPABASE_URL=
 VITE_SUPABASE_KEY=
 VITE_SUPABASE_TABLE=overview_reception_state
 VITE_SUPABASE_STATE_ID=main
+VITE_SUPABASE_CACHE_MS=2500
 ```
 
 - `PORT` : port du serveur Express.
@@ -56,6 +57,7 @@ VITE_SUPABASE_STATE_ID=main
 - `VITE_SUPABASE_URL` : URL du projet Supabase, par exemple `https://votre-ref.supabase.co`.
 - `VITE_SUPABASE_KEY` : clé publique Supabase, idéalement la clé `sb_publishable_...`.
 - `VITE_SUPABASE_TABLE` / `VITE_SUPABASE_STATE_ID` : nom de table et identifiant de stockage, à laisser par défaut sauf besoin particulier.
+- `VITE_SUPABASE_CACHE_MS` : cache court côté navigateur pour éviter plusieurs lectures Supabase identiques en rafale.
 
 Par défaut, le premier compte créé est :
 

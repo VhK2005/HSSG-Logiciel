@@ -16,6 +16,9 @@ fs.mkdirSync(path.dirname(databasePath), { recursive: true });
 
 export const db = new Database(databasePath);
 db.pragma('journal_mode = WAL');
+db.pragma('synchronous = NORMAL');
+db.pragma('busy_timeout = 5000');
+db.pragma('foreign_keys = ON');
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS tasks (
@@ -36,6 +39,10 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
   CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
   CREATE INDEX IF NOT EXISTS idx_tasks_archived ON tasks(is_archived);
+  CREATE INDEX IF NOT EXISTS idx_tasks_active_due_updated ON tasks(is_archived, due_date, updated_at);
+  CREATE INDEX IF NOT EXISTS idx_tasks_status_due_active ON tasks(is_archived, status, due_date);
+  CREATE INDEX IF NOT EXISTS idx_tasks_archive_completed ON tasks(is_archived, status, completed_at);
+  CREATE INDEX IF NOT EXISTS idx_tasks_archived_sort ON tasks(is_archived, archived_at, completed_at, updated_at);
 
   CREATE TABLE IF NOT EXISTS task_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,6 +56,7 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_task_history_task_id ON task_history(task_id);
   CREATE INDEX IF NOT EXISTS idx_task_history_created_at ON task_history(created_at);
+  CREATE INDEX IF NOT EXISTS idx_task_history_task_created ON task_history(task_id, created_at DESC, id DESC);
 
   CREATE TABLE IF NOT EXISTS app_settings (
     key TEXT PRIMARY KEY,

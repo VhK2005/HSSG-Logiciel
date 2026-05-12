@@ -25,12 +25,10 @@ import {
   deleteTask,
   downloadAdminFile,
   CLIENT_STORAGE_MODE,
-  fetchArchivedTasks,
-  fetchAdminSettings,
   fetchAdminUsers,
   fetchContributionStats,
   fetchCurrentUser,
-  fetchTasks,
+  fetchWorkspaceData,
   getStoredToken,
   loginUser,
   logoutUser,
@@ -583,14 +581,10 @@ function HotelApp({ onLock, currentUser }) {
   async function loadData() {
     setError('');
     try {
-      const [active, archived, adminSettings] = await Promise.all([
-        fetchTasks(),
-        fetchArchivedTasks(),
-        fetchAdminSettings()
-      ]);
-      setTasks(active);
-      setArchivedTasks(archived);
-      setSettings(adminSettings);
+      const data = await fetchWorkspaceData();
+      setTasks(data.tasks);
+      setArchivedTasks(data.archivedTasks);
+      setSettings(data.settings);
     } catch (err) {
       if (err.status === 401) {
         onLock();
