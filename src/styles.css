@@ -2024,6 +2024,81 @@ textarea {
   box-shadow: var(--shadow);
 }
 
+.admin-disclosure {
+  border: 1px solid rgba(121, 158, 194, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 52%),
+    rgba(6, 15, 29, 0.72);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.admin-disclosure > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  padding: 14px 16px;
+}
+
+.admin-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-disclosure > summary::after {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(98, 198, 255, 0.22);
+  border-radius: 8px;
+  color: var(--accent-dark);
+  content: "+";
+  font-weight: 900;
+}
+
+.admin-disclosure[open] > summary::after {
+  content: "−";
+}
+
+.admin-disclosure-title {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.admin-disclosure-title svg {
+  flex: 0 0 auto;
+  color: var(--accent-dark);
+}
+
+.admin-disclosure-title h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.08rem;
+}
+
+.admin-disclosure > summary > strong {
+  justify-self: end;
+  border-radius: 999px;
+  background: rgba(98, 198, 255, 0.1);
+  color: #cfeaff;
+  padding: 5px 9px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.admin-disclosure-body {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid rgba(121, 158, 194, 0.14);
+  padding: 14px;
+}
+
 .admin-panel > .section-head svg {
   color: var(--accent);
 }
@@ -2473,6 +2548,118 @@ textarea {
 .template-list {
   display: grid;
   gap: 10px;
+}
+
+.checklist-admin-panel {
+  gap: 12px;
+}
+
+.admin-checklist-editor {
+  display: grid;
+  gap: 10px;
+}
+
+.checklist-editor {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0a1626;
+  overflow: hidden;
+}
+
+.checklist-editor summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, auto);
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 12px;
+}
+
+.checklist-editor summary span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.checklist-editor summary strong {
+  overflow: hidden;
+  color: #ffffff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.checklist-editor summary small,
+.checklist-editor summary em {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.checklist-editor summary em {
+  justify-self: end;
+  overflow: hidden;
+  max-width: 360px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.checklist-editor-body {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding: 12px;
+}
+
+.checklist-editor-meta {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(220px, 1.2fr);
+  gap: 10px;
+}
+
+.checklist-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.checklist-point-list {
+  display: grid;
+  gap: 8px;
+}
+
+.checklist-point-editor {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.checklist-point-editor > span {
+  display: grid;
+  height: 32px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(98, 198, 255, 0.1);
+  color: var(--accent-dark);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.checklist-point-editor input {
+  min-height: 38px;
+}
+
+.checklist-point-editor > div {
+  display: flex;
+  gap: 6px;
+}
+
+.checklist-point-editor .icon-only {
+  width: 34px;
+  height: 34px;
+  font-size: 0.95rem;
+  font-weight: 900;
 }
 
 .template-editor {
@@ -4095,6 +4282,15 @@ textarea,
     flex: 1 1 180px;
   }
 
+  .admin-disclosure > summary {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-disclosure > summary > strong {
+    justify-self: start;
+    white-space: normal;
+  }
+
   .filter-bar,
   .archive-filters {
     grid-template-columns: 1fr;
@@ -4110,6 +4306,7 @@ textarea,
   .security-deck,
   .security-flow,
   .security-brief,
+  .checklist-editor-meta,
   .shift-layout,
   .shift-command-metrics,
   .template-editor-grid {
@@ -4120,6 +4317,20 @@ textarea,
   .security-brief button {
     justify-self: start;
     white-space: normal;
+  }
+
+  .checklist-editor summary,
+  .checklist-point-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .checklist-editor summary em {
+    justify-self: start;
+    max-width: 100%;
+  }
+
+  .checklist-point-editor > div {
+    justify-content: flex-start;
   }
 
   .shift-column.secondary {

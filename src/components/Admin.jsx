@@ -54,6 +54,30 @@ function createTemplate() {
   };
 }
 
+function AdminDisclosure({ eyebrow, title, meta, icon: Icon, defaultOpen = false, children }) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <details
+      className="admin-disclosure"
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
+      <summary>
+        <div className="admin-disclosure-title">
+          {Icon && <Icon size={19} aria-hidden="true" />}
+          <div>
+            <p className="eyebrow">{eyebrow}</p>
+            <h2>{title}</h2>
+          </div>
+        </div>
+        {meta && <strong>{meta}</strong>}
+      </summary>
+      <div className="admin-disclosure-body">{children}</div>
+    </details>
+  );
+}
+
 export default function Admin({
   settings,
   tasks,
@@ -146,6 +170,93 @@ export default function Admin({
     updateDraft({
       quickTemplates: draft.quickTemplates.filter((template) => template.id !== id)
     });
+  }
+
+  function updateChecklists(updater) {
+    const current = Array.isArray(draft.shiftChecklists) ? draft.shiftChecklists : [];
+    updateDraft({ shiftChecklists: updater(current) });
+  }
+
+  function addChecklist() {
+    const index = (draft.shiftChecklists || []).length + 1;
+    updateChecklists((current) => [
+      ...current,
+      {
+        id: `custom-checklist-${Date.now()}`,
+        label: `Nouvelle checklist ${index}`,
+        subtitle: '',
+        items: []
+      }
+    ]);
+  }
+
+  function updateChecklist(id, patch) {
+    updateChecklists((current) =>
+      current.map((checklist) =>
+        checklist.id === id ? { ...checklist, ...patch } : checklist
+      )
+    );
+  }
+
+  function removeChecklist(id) {
+    updateChecklists((current) => current.filter((checklist) => checklist.id !== id));
+  }
+
+  function moveChecklist(id, direction) {
+    updateChecklists((current) => {
+      const index = current.findIndex((checklist) => checklist.id === id);
+      const nextIndex = index + direction;
+      if (index < 0 || nextIndex < 0 || nextIndex >= current.length) return current;
+      const next = [...current];
+      [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+      return next;
+    });
+  }
+
+  function addChecklistItem(checklistId) {
+    updateChecklists((current) =>
+      current.map((checklist) =>
+        checklist.id === checklistId
+          ? { ...checklist, items: [...(checklist.items || []), ''] }
+          : checklist
+      )
+    );
+  }
+
+  function updateChecklistItem(checklistId, itemIndex, value) {
+    updateChecklists((current) =>
+      current.map((checklist) => {
+        if (checklist.id !== checklistId) return checklist;
+        const items = [...(checklist.items || [])];
+        items[itemIndex] = value;
+        return { ...checklist, items };
+      })
+    );
+  }
+
+  function removeChecklistItem(checklistId, itemIndex) {
+    updateChecklists((current) =>
+      current.map((checklist) => {
+        if (checklist.id !== checklistId) return checklist;
+        return {
+          ...checklist,
+          items: (checklist.items || []).filter((_, index) => index !== itemIndex)
+        };
+      })
+    );
+  }
+
+  function moveChecklistItem(checklistId, itemIndex, direction) {
+    updateChecklists((current) =>
+      current.map((checklist) => {
+        if (checklist.id !== checklistId) return checklist;
+        const items = [...(checklist.items || [])];
+        const nextIndex = itemIndex + direction;
+        if (nextIndex < 0 || nextIndex >= items.length) return checklist;
+        [items[itemIndex], items[nextIndex]] = [items[nextIndex], items[itemIndex]];
+        return { ...checklist, items };
+      })
+    );
   }
 
   async function saveSettings() {
@@ -291,10 +402,22 @@ export default function Admin({
   const activeUsers = users.filter((user) => user.is_active).length;
   const adminUsers = users.filter((user) => user.role === 'admin' && user.is_active).length;
   const receptionUsers = users.filter((user) => user.role === 'reception' && user.is_active).length;
+  const checklistDrafts = Array.isArray(draft.shiftChecklists) ? draft.shiftChecklists : [];
+  const checklistPointCount = checklistDrafts.reduce(
+    (sum, checklist) => sum + (Array.isArray(checklist.items) ? checklist.items.length : 0),
+    0
+  );
 
   return (
     <section className="admin-page">
-      <div className="admin-grid">
+      <AdminDisclosure
+        eyebrow="Administration"
+        title="Comptes et activité"
+        meta={`${activeUsers} actif${activeUsers > 1 ? 's' : ''}`}
+        icon={Users}
+        defaultOpen
+      >
+        <div className="admin-grid">
         <article className="admin-panel">
           <div className="section-head">
             <div>
@@ -459,8 +582,16 @@ export default function Admin({
             </div>
           </div>
         </article>
-      </div>
+        </div>
+      </AdminDisclosure>
 
+      <AdminDisclosure
+        eyebrow="Gouvernance"
+        title="Sécurité et bons réflexes"
+        meta={storageLabel}
+        icon={ShieldCheck}
+        defaultOpen
+      >
       <article className="admin-panel security-panel">
         <div className="section-head">
           <div>
@@ -602,7 +733,15 @@ export default function Admin({
           </div>
         </div>
       </article>
+      </AdminDisclosure>
 
+      <AdminDisclosure
+        eyebrow="Pilotage"
+        title="Kanban, exports et données"
+        meta={`${tasks.length} actives · ${archivedTasks.length} archives`}
+        icon={DatabaseBackup}
+        defaultOpen
+      >
       <div className="admin-grid">
         <article className="admin-panel">
           <div className="section-head">
@@ -688,7 +827,176 @@ export default function Admin({
           </div>
         </article>
       </div>
+      </AdminDisclosure>
 
+      <AdminDisclosure
+        eyebrow="Procédures"
+        title="Checklists de shift"
+        meta={`${checklistDrafts.length} checklists · ${checklistPointCount} points`}
+        icon={ClipboardCheck}
+      >
+        <article className="admin-panel checklist-admin-panel">
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">Checklists</p>
+              <h2>Points de contrôle réception</h2>
+            </div>
+            <ClipboardCheck size={20} aria-hidden="true" />
+          </div>
+
+          <p className="admin-help">
+            Ajoutez, modifiez ou réordonnez les points affichés dans l’onglet Checklists. Les
+            changements seront appliqués après enregistrement des réglages.
+          </p>
+
+          <div className="admin-template-actions">
+            <button type="button" className="ghost-action" onClick={addChecklist}>
+              <Plus size={16} aria-hidden="true" />
+              Ajouter une checklist
+            </button>
+          </div>
+
+          <div className="admin-checklist-editor">
+            {checklistDrafts.map((checklist, checklistIndex) => {
+              const items = Array.isArray(checklist.items) ? checklist.items : [];
+              const checklistId = checklist.id || `checklist-${checklistIndex + 1}`;
+
+              return (
+                <details className="checklist-editor" key={checklistId} open={checklistIndex === 0}>
+                  <summary>
+                    <span>
+                      <strong>{checklist.label || `Checklist ${checklistIndex + 1}`}</strong>
+                      <small>{items.length} point{items.length > 1 ? 's' : ''}</small>
+                    </span>
+                    <em>{checklist.subtitle || 'Sans sous-titre'}</em>
+                  </summary>
+
+                  <div className="checklist-editor-body">
+                    <div className="checklist-editor-meta">
+                      <label>
+                        Nom affiché
+                        <input
+                          value={checklist.label || ''}
+                          onChange={(event) =>
+                            updateChecklist(checklistId, { label: event.target.value })
+                          }
+                          placeholder="Matin, Après-midi, Nuit..."
+                        />
+                      </label>
+                      <label>
+                        Sous-titre
+                        <input
+                          value={checklist.subtitle || ''}
+                          onChange={(event) =>
+                            updateChecklist(checklistId, { subtitle: event.target.value })
+                          }
+                          placeholder="Objectif ou contexte du shift"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="checklist-editor-actions">
+                      <button
+                        type="button"
+                        className="ghost-action"
+                        disabled={checklistIndex === 0}
+                        onClick={() => moveChecklist(checklistId, -1)}
+                      >
+                        Monter la checklist
+                      </button>
+                      <button
+                        type="button"
+                        className="ghost-action"
+                        disabled={checklistIndex === checklistDrafts.length - 1}
+                        onClick={() => moveChecklist(checklistId, 1)}
+                      >
+                        Descendre la checklist
+                      </button>
+                      <button
+                        type="button"
+                        className="ghost-action danger-action"
+                        onClick={() => removeChecklist(checklistId)}
+                      >
+                        <Trash2 size={16} aria-hidden="true" />
+                        Supprimer
+                      </button>
+                    </div>
+
+                    <div className="checklist-point-list">
+                      {items.map((item, itemIndex) => (
+                        <div className="checklist-point-editor" key={`${checklistId}-${itemIndex}`}>
+                          <span>{itemIndex + 1}</span>
+                          <input
+                            value={item || ''}
+                            onChange={(event) =>
+                              updateChecklistItem(checklistId, itemIndex, event.target.value)
+                            }
+                            placeholder="Point à contrôler..."
+                          />
+                          <div>
+                            <button
+                              type="button"
+                              className="icon-only"
+                              disabled={itemIndex === 0}
+                              onClick={() => moveChecklistItem(checklistId, itemIndex, -1)}
+                              aria-label="Monter ce point"
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              className="icon-only"
+                              disabled={itemIndex === items.length - 1}
+                              onClick={() => moveChecklistItem(checklistId, itemIndex, 1)}
+                              aria-label="Descendre ce point"
+                            >
+                              ↓
+                            </button>
+                            <button
+                              type="button"
+                              className="icon-only danger"
+                              onClick={() => removeChecklistItem(checklistId, itemIndex)}
+                              aria-label="Supprimer ce point"
+                            >
+                              <Trash2 size={15} aria-hidden="true" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+
+                      {items.length === 0 && (
+                        <div className="empty-state compact">Aucun point configuré pour cette checklist.</div>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      className="ghost-action"
+                      onClick={() => addChecklistItem(checklistId)}
+                    >
+                      <Plus size={16} aria-hidden="true" />
+                      Ajouter un point
+                    </button>
+                  </div>
+                </details>
+              );
+            })}
+
+            {checklistDrafts.length === 0 && (
+              <div className="empty-state compact">
+                Aucune checklist configurée. Ajoutez une checklist puis ses points de contrôle.
+              </div>
+            )}
+          </div>
+        </article>
+      </AdminDisclosure>
+
+      <AdminDisclosure
+        eyebrow="Création rapide"
+        title="Modèles de consignes"
+        meta={`${(draft.quickTemplates || []).length} modèles`}
+        icon={Settings2}
+      >
       <article className="admin-panel">
         <div className="section-head">
           <div>
@@ -878,6 +1186,7 @@ export default function Admin({
           ))}
         </div>
       </article>
+      </AdminDisclosure>
 
       <div className="admin-footer">
         {message && <span>{message}</span>}
