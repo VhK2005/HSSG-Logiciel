@@ -1,0 +1,29 @@
+{
+  "name": "overview-reception-hotel",
+  "version": "1.0.0",
+  "description": "Application web de suivi des consignes de reception hotel.",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "node --watch server/index.js",
+    "dev:client": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "start": "node server/index.js",
+    "test:load": "node scripts/load-test.js",
+    "seed:demo": "node server/seedDemo.js"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^5.0.0",
+    "better-sqlite3": "^12.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "lucide-react": "^0.475.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "vite": "^6.1.0"
+  }
+}
