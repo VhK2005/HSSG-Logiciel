@@ -38,7 +38,12 @@ DEFAULT_ADMIN_USERNAME=Admin
 DEFAULT_ADMIN_PASSWORD=admin
 VITE_BASE_PATH=/
 VITE_STATIC_MODE=false
+VITE_DATA_MODE=local
 VITE_API_BASE=
+VITE_SUPABASE_URL=
+VITE_SUPABASE_KEY=
+VITE_SUPABASE_TABLE=overview_reception_state
+VITE_SUPABASE_STATE_ID=main
 ```
 
 - `PORT` : port du serveur Express.
@@ -46,7 +51,11 @@ VITE_API_BASE=
 - `DEFAULT_ADMIN_USERNAME` / `DEFAULT_ADMIN_PASSWORD` : identifiants du premier compte administrateur si aucun utilisateur n’existe encore.
 - `VITE_BASE_PATH` : chemin public du frontend, utile pour GitHub Pages.
 - `VITE_STATIC_MODE` : `true` pour faire tourner l’app sans backend, avec stockage navigateur.
+- `VITE_DATA_MODE` : `local` pour stockage navigateur, `supabase` pour stockage partagé sur GitHub Pages.
 - `VITE_API_BASE` : URL publique du backend si le frontend est hébergé séparément.
+- `VITE_SUPABASE_URL` : URL du projet Supabase, par exemple `https://votre-ref.supabase.co`.
+- `VITE_SUPABASE_KEY` : clé publique Supabase, idéalement la clé `sb_publishable_...`.
+- `VITE_SUPABASE_TABLE` / `VITE_SUPABASE_STATE_ID` : nom de table et identifiant de stockage, à laisser par défaut sauf besoin particulier.
 
 Par défaut, le premier compte créé est :
 
@@ -96,12 +105,18 @@ Le projet contient donc deux modes :
 
 - Mode complet serveur : Express + SQLite, recommandé pour un vrai usage partagé entre réception et direction.
 - Mode GitHub Pages : l’application tourne entièrement dans le navigateur avec `localStorage`. Les comptes, consignes, archives, historiques, automatisations, exports et réglages fonctionnent, mais les données restent locales au navigateur utilisé.
+- Mode GitHub Pages + Supabase : l’application reste statique, mais sauvegarde les données dans une table Supabase pour les partager entre plusieurs ordinateurs.
 
 Le workflow construit l’interface avec :
 
 ```env
 VITE_BASE_PATH=/HSSG-Logiciel/
 VITE_STATIC_MODE=true
+VITE_DATA_MODE=${{ vars.VITE_DATA_MODE }}
+VITE_SUPABASE_URL=${{ vars.VITE_SUPABASE_URL }}
+VITE_SUPABASE_KEY=${{ vars.VITE_SUPABASE_KEY }}
+VITE_SUPABASE_ANON_KEY=${{ vars.VITE_SUPABASE_ANON_KEY }}
+VITE_SUPABASE_PUBLISHABLE_KEY=${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
 VITE_API_BASE=${{ vars.VITE_API_BASE }}
 ```
 
@@ -115,6 +130,61 @@ Limites du mode GitHub Pages :
 - pour un usage réel partagé, il faut garder le backend Express/SQLite hébergé ailleurs
 
 Si vous hébergez l’API ailleurs, désactivez `VITE_STATIC_MODE` et définissez `VITE_API_BASE` avec l’URL publique de l’API, par exemple `https://api-votre-domaine.fr`.
+
+### GitHub Pages avec données partagées Supabase
+
+Cette option permet de garder un hébergement gratuit sur GitHub Pages tout en consultant les mêmes consignes depuis plusieurs appareils.
+
+Dans Supabase, ouvrez `SQL Editor`, créez une nouvelle requête, puis collez le contenu de `scripts/supabase-setup.sql` :
+
+```sql
+create table if not exists public.overview_reception_state (
+  id text primary key,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.overview_reception_state (id, data)
+values ('main', '{}'::jsonb)
+on conflict (id) do nothing;
+
+alter table public.overview_reception_state enable row level security;
+
+drop policy if exists "overview_reception_state_read" on public.overview_reception_state;
+drop policy if exists "overview_reception_state_insert" on public.overview_reception_state;
+drop policy if exists "overview_reception_state_update" on public.overview_reception_state;
+
+create policy "overview_reception_state_read"
+on public.overview_reception_state
+for select
+to anon
+using (true);
+
+create policy "overview_reception_state_insert"
+on public.overview_reception_state
+for insert
+to anon
+with check (true);
+
+create policy "overview_reception_state_update"
+on public.overview_reception_state
+for update
+to anon
+using (true)
+with check (true);
+```
+
+Dans GitHub, allez dans `Settings` > `Secrets and variables` > `Actions` > `Variables`, puis ajoutez :
+
+- `VITE_DATA_MODE` : `supabase`
+- `VITE_SUPABASE_URL` : l’URL du projet Supabase, par exemple `https://votre-ref.supabase.co`
+- `VITE_SUPABASE_KEY` : la clé publique Supabase `sb_publishable_...` ou la clé legacy `anon`
+
+Vous pouvez aussi utiliser `VITE_SUPABASE_PUBLISHABLE_KEY` ou `VITE_SUPABASE_ANON_KEY` si vous préférez garder le nom exact de Supabase.
+
+Relancez ensuite le workflow `Deploy GitHub Pages`.
+
+Important : cette option est pratique et gratuite pour une démonstration ou un usage interne léger, mais ce n’est pas une sécurité forte. La clé publique est incluse dans le site statique. Ne stockez donc pas de données sensibles, et préférez le mode serveur Express/SQLite avec HTTPS pour une mise en production sérieuse.
 
 ### Publication sans Git installé
 

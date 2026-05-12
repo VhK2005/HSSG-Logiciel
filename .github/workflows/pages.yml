@@ -36,6 +36,13 @@ jobs:
         env:
           VITE_BASE_PATH: /HSSG-Logiciel/
           VITE_STATIC_MODE: "true"
+          VITE_DATA_MODE: ${{ vars.VITE_DATA_MODE }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_KEY: ${{ vars.VITE_SUPABASE_KEY }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_TABLE: ${{ vars.VITE_SUPABASE_TABLE }}
+          VITE_SUPABASE_STATE_ID: ${{ vars.VITE_SUPABASE_STATE_ID }}
           VITE_API_BASE: ${{ vars.VITE_API_BASE }}
 
       - name: Configure Pages

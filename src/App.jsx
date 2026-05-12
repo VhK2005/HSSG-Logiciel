@@ -24,6 +24,7 @@ import {
   createAdminUser,
   deleteTask,
   downloadAdminFile,
+  CLIENT_STORAGE_MODE,
   fetchArchivedTasks,
   fetchAdminSettings,
   fetchAdminUsers,
@@ -86,6 +87,10 @@ const PAGE_DESCRIPTIONS = {
 
 const NOTIFICATION_KEY = 'overviewReceptionBrowserNotifications';
 const IS_STATIC_MODE = import.meta.env.VITE_STATIC_MODE === 'true';
+const STATIC_MODE_LABEL =
+  CLIENT_STORAGE_MODE === 'supabase'
+    ? 'Mode GitHub Pages connecté : les données sont synchronisées via Supabase.'
+    : 'Mode GitHub Pages : l’application tourne sans serveur. Les données sont stockées dans ce navigateur.';
 
 function AuthGate({ children }) {
   const [checking, setChecking] = useState(true);
@@ -950,7 +955,7 @@ function HotelApp({ onLock, currentUser }) {
       {error && <div className="app-alert">{error}</div>}
       {IS_STATIC_MODE && (
         <div className="view-note static-mode-note">
-          Mode GitHub Pages : l’application tourne sans serveur. Les données sont stockées dans ce navigateur.
+          {STATIC_MODE_LABEL}
         </div>
       )}
       <ErrorBoundary resetKey={page} onReset={() => setPage('overview')}>
