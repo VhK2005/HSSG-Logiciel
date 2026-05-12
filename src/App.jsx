@@ -11,12 +11,11 @@ import {
   Lock,
   LogOut,
   Plus,
-  RefreshCw,
   Search,
   Settings,
   X
 } from 'lucide-react';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   clearAccessToken,
@@ -24,7 +23,6 @@ import {
   createAdminUser,
   deleteTask,
   downloadAdminFile,
-  CLIENT_STORAGE_MODE,
   fetchAdminUsers,
   fetchContributionStats,
   fetchCurrentUser,
@@ -84,11 +82,7 @@ const PAGE_DESCRIPTIONS = {
 };
 
 const NOTIFICATION_KEY = 'overviewReceptionBrowserNotifications';
-const IS_STATIC_MODE = import.meta.env.VITE_STATIC_MODE === 'true';
-const STATIC_MODE_LABEL =
-  CLIENT_STORAGE_MODE === 'supabase'
-    ? 'Mode GitHub Pages connecté : les données sont synchronisées via Supabase.'
-    : 'Mode GitHub Pages : l’application tourne sans serveur. Les données sont stockées dans ce navigateur.';
+const AUTO_REFRESH_MS = 15000;
 
 function AuthGate({ children }) {
   const [checking, setChecking] = useState(true);
@@ -424,7 +418,6 @@ function Shell({
   page,
   setPage,
   onCreate,
-  onRefresh,
   onLock,
   currentUser,
   registerCount,
@@ -436,6 +429,7 @@ function Shell({
     day: '2-digit',
     month: 'long'
   }).format(new Date());
+  const hasSidebarAlerts = alertCounts.overdue + alertCounts.j1 + alertCounts.urgent > 0;
   const nav = [
     { id: 'overview', icon: Home },
     { id: 'personal', icon: BarChart3 },
@@ -485,38 +479,40 @@ function Shell({
           ))}
         </nav>
 
-        <div className="sidebar-alerts" aria-label="Alertes rapides">
-          <span className="nav-label">Alertes</span>
-          <div className="sidebar-alert-grid">
-            <button
-              className="sidebar-alert danger"
-              type="button"
-              onClick={() => setPage('calendar')}
-              aria-label={`${alertCounts.overdue} consignes en retard`}
-            >
-              <span className="nav-text">Retard</span>
-              <strong>{alertCounts.overdue}</strong>
-            </button>
-            <button
-              className="sidebar-alert warning"
-              type="button"
-              onClick={() => setPage('kanban')}
-              aria-label={`${alertCounts.j1} consignes à J-1`}
-            >
-              <span className="nav-text">J-1</span>
-              <strong>{alertCounts.j1}</strong>
-            </button>
-            <button
-              className="sidebar-alert urgent"
-              type="button"
-              onClick={() => setPage('overview')}
-              aria-label={`${alertCounts.urgent} consignes urgentes`}
-            >
-              <span className="nav-text">Urgent</span>
-              <strong>{alertCounts.urgent}</strong>
-            </button>
+        {hasSidebarAlerts && (
+          <div className="sidebar-alerts" aria-label="Alertes rapides">
+            <span className="nav-label">Alertes</span>
+            <div className="sidebar-alert-grid">
+              <button
+                className="sidebar-alert danger"
+                type="button"
+                onClick={() => setPage('calendar')}
+                aria-label={`${alertCounts.overdue} consignes en retard`}
+              >
+                <span className="nav-text">Retard</span>
+                <strong>{alertCounts.overdue}</strong>
+              </button>
+              <button
+                className="sidebar-alert warning"
+                type="button"
+                onClick={() => setPage('kanban')}
+                aria-label={`${alertCounts.j1} consignes à J-1`}
+              >
+                <span className="nav-text">J-1</span>
+                <strong>{alertCounts.j1}</strong>
+              </button>
+              <button
+                className="sidebar-alert urgent"
+                type="button"
+                onClick={() => setPage('overview')}
+                aria-label={`${alertCounts.urgent} consignes urgentes`}
+              >
+                <span className="nav-text">Urgent</span>
+                <strong>{alertCounts.urgent}</strong>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         <button
           className="ghost-action sidebar-lock"
@@ -546,10 +542,6 @@ function Shell({
               <span>{currentUser?.username} · {currentUser?.role === 'admin' ? 'Admin' : 'Réception'}</span>
             </div>
             <div className="topbar-actions">
-              <button className="ghost-action icon-action" onClick={onRefresh} type="button">
-                <RefreshCw size={17} aria-hidden="true" />
-                Actualiser
-              </button>
               <button className="primary-action" onClick={onCreate} type="button">
                 <Plus size={18} aria-hidden="true" />
                 Nouvelle consigne
@@ -578,8 +570,8 @@ function HotelApp({ onLock, currentUser }) {
   const [error, setError] = useState('');
   const [editingTask, setEditingTask] = useState(null);
 
-  async function loadData() {
-    setError('');
+  const loadData = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setError('');
     try {
       const data = await fetchWorkspaceData();
       setTasks(data.tasks);
@@ -590,15 +582,32 @@ function HotelApp({ onLock, currentUser }) {
         onLock();
         return;
       }
-      setError(err.message);
+      if (!silent) setError(err.message);
     } finally {
       setLoading(false);
     }
-  }
+  }, [onLock]);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
+
+  useEffect(() => {
+    function refreshSilently() {
+      if (document.visibilityState !== 'visible' || editingTask || saving) return;
+      loadData({ silent: true });
+    }
+
+    const timer = window.setInterval(refreshSilently, AUTO_REFRESH_MS);
+    window.addEventListener('focus', refreshSilently);
+    document.addEventListener('visibilitychange', refreshSilently);
+
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refreshSilently);
+      document.removeEventListener('visibilitychange', refreshSilently);
+    };
+  }, [editingTask, loadData, saving]);
 
   useEffect(() => {
     if (page === 'admin' && currentUser?.role !== 'admin') {
@@ -930,18 +939,12 @@ function HotelApp({ onLock, currentUser }) {
       page={page}
       setPage={setPage}
       onCreate={() => setEditingTask({})}
-      onRefresh={loadData}
       onLock={onLock}
       currentUser={currentUser}
       registerCount={registerTasks.length}
       alertCounts={alertCounts}
     >
       {error && <div className="app-alert">{error}</div>}
-      {IS_STATIC_MODE && (
-        <div className="view-note static-mode-note">
-          {STATIC_MODE_LABEL}
-        </div>
-      )}
       <ErrorBoundary resetKey={page} onReset={() => setPage('overview')}>
         {loading ? <div className="loading-state">Chargement des consignes...</div> : content}
       </ErrorBoundary>
