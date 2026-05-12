@@ -21,6 +21,7 @@ import {
   markShiftTasksRead
 } from '../api.js';
 import { PRIORITIES, STATUSES } from '../constants.js';
+import { readStorage, writeStorage } from '../safeStorage.js';
 import {
   formatDate,
   getDueSignal,
@@ -34,8 +35,21 @@ import {
 const SHIFT_NOTE_KEY = 'overviewReceptionShiftNote';
 
 function readStoredText(key) {
-  if (typeof window === 'undefined') return '';
-  return window.localStorage.getItem(key) || '';
+  return readStorage(key, '');
+}
+
+function normalizeShiftTask(task) {
+  return {
+    ...task,
+    title: task?.title || `Consigne ${task?.id || ''}`.trim(),
+    description: task?.description || '',
+    due_date: task?.due_date || null,
+    priority: PRIORITIES.includes(task?.priority) ? task.priority : 'Normale',
+    category: task?.category || 'Autre',
+    status: STATUSES.includes(task?.status) ? task.status : 'À faire',
+    created_at: task?.created_at || task?.updated_at || new Date().toISOString(),
+    updated_at: task?.updated_at || task?.created_at || new Date().toISOString()
+  };
 }
 
 function ShiftTaskRow({
@@ -49,29 +63,31 @@ function ShiftTaskRow({
   onQuickAction,
   onCreateFollowUp
 }) {
-  const dueSignal = getDueSignal(task);
+  const safeTask = normalizeShiftTask(task);
+  const dueSignal = getDueSignal(safeTask);
   const [isExpanded, setIsExpanded] = useState(false);
+  const priorityClass = safeTask.priority.toLowerCase();
 
   return (
     <article className={`shift-task-row ${tone} ${isExpanded ? 'expanded' : 'collapsed'} ${isSeen ? 'seen' : 'unseen'}`}>
       <div className="shift-task-content">
         <div className="shift-task-title">
-          <strong>{task.title}</strong>
-          <span className={`shift-priority priority-${task.priority.toLowerCase()}`}>
-            {task.priority}
+          <strong>{safeTask.title}</strong>
+          <span className={`shift-priority priority-${priorityClass}`}>
+            {safeTask.priority}
           </span>
         </div>
         <div className="shift-task-meta">
-          <span>{task.category}</span>
-          <span>{task.status}</span>
+          <span>{safeTask.category}</span>
+          <span>{safeTask.status}</span>
           <span>
             <CalendarClock size={13} aria-hidden="true" />
-            {formatDate(task.due_date)}
+            {formatDate(safeTask.due_date)}
           </span>
           {dueSignal && <em className={dueSignal.tone}>{dueSignal.label}</em>}
           <em className={isSeen ? 'seen' : 'unseen'}>{isSeen ? 'Vu' : 'À lire'}</em>
         </div>
-        {isExpanded && task.description && <p>{task.description}</p>}
+        {isExpanded && safeTask.description && <p>{safeTask.description}</p>}
       </div>
 
       <div className="shift-task-controls">
@@ -87,13 +103,13 @@ function ShiftTaskRow({
             <ChevronDown size={15} aria-hidden="true" />
           )}
         </button>
-        <button className="icon-only" type="button" onClick={() => onEdit(task)} title="Modifier">
+        <button className="icon-only" type="button" onClick={() => onEdit(safeTask)} title="Modifier">
           <Pencil size={15} aria-hidden="true" />
         </button>
         <button
           className={`icon-only ${isSeen ? 'seen-check' : ''}`}
           type="button"
-          onClick={() => onMarkSeen(task)}
+          onClick={() => onMarkSeen(safeTask)}
           title={isSeen ? 'Déjà vu' : 'Marquer comme vu'}
         >
           <CheckCheck size={15} aria-hidden="true" />
@@ -105,9 +121,9 @@ function ShiftTaskRow({
           <div className="shift-task-selects">
             {onStatusChange && (
               <select
-                value={task.status}
-                onChange={(event) => onStatusChange(task, event.target.value)}
-                aria-label={`Statut de ${task.title}`}
+                value={safeTask.status}
+                onChange={(event) => onStatusChange(safeTask, event.target.value)}
+                aria-label={`Statut de ${safeTask.title}`}
               >
                 {STATUSES.map((status) => (
                   <option key={status}>{status}</option>
@@ -116,9 +132,9 @@ function ShiftTaskRow({
             )}
             {onPriorityChange && (
               <select
-                value={task.priority}
-                onChange={(event) => onPriorityChange(task, event.target.value)}
-                aria-label={`Priorité de ${task.title}`}
+                value={safeTask.priority}
+                onChange={(event) => onPriorityChange(safeTask, event.target.value)}
+                aria-label={`Priorité de ${safeTask.title}`}
               >
                 {PRIORITIES.map((priority) => (
                   <option key={priority}>{priority}</option>
@@ -128,26 +144,26 @@ function ShiftTaskRow({
           </div>
 
           <div className="shift-task-actions">
-            {onQuickAction && task.status !== 'Fait' && (
-              <button type="button" onClick={() => onQuickAction(task, 'done')}>
+            {onQuickAction && safeTask.status !== 'Fait' && (
+              <button type="button" onClick={() => onQuickAction(safeTask, 'done')}>
                 <CheckCircle2 size={14} aria-hidden="true" />
                 Fait
               </button>
             )}
             {onQuickAction && (
-              <button type="button" onClick={() => onQuickAction(task, 'waiting')}>
+              <button type="button" onClick={() => onQuickAction(safeTask, 'waiting')}>
                 <TimerReset size={14} aria-hidden="true" />
                 Attente
               </button>
             )}
             {onQuickAction && (
-              <button type="button" onClick={() => onQuickAction(task, 'followed')}>
+              <button type="button" onClick={() => onQuickAction(safeTask, 'followed')}>
                 <Send size={14} aria-hidden="true" />
                 Relancé
               </button>
             )}
             {onCreateFollowUp && (
-              <button type="button" onClick={() => onCreateFollowUp(task)}>
+              <button type="button" onClick={() => onCreateFollowUp(safeTask)}>
                 <CalendarClock size={14} aria-hidden="true" />
                 Relance
               </button>
@@ -228,7 +244,8 @@ function buildShiftText({ focus = [], overdue, today, urgent, modified, created 
       lines.push('- Rien à signaler');
     } else {
       for (const task of items) {
-        lines.push(`- ${task.title} | ${task.category} | ${task.priority} | ${formatDate(task.due_date)}`);
+        const safeTask = normalizeShiftTask(task);
+        lines.push(`- ${safeTask.title} | ${safeTask.category} | ${safeTask.priority} | ${formatDate(safeTask.due_date)}`);
       }
     }
     lines.push('');
@@ -271,13 +288,14 @@ export default function ShiftHandover({
 }) {
   const [seenTasks, setSeenTasks] = useState({});
   const [shiftNote, setShiftNote] = useState(() => readStoredText(SHIFT_NOTE_KEY));
-  const openTasks = tasks.filter((task) => task.status !== 'Fait');
+  const safeTasks = tasks.map(normalizeShiftTask);
+  const openTasks = safeTasks.filter((task) => task.status !== 'Fait');
   const allSections = {
     overdue: sortByOperationalUrgency(openTasks.filter(isOverdue)),
     today: sortByOperationalUrgency(openTasks.filter(isDueToday)),
     urgent: sortByOperationalUrgency(openTasks.filter((task) => task.priority === 'Urgente')),
-    modified: sortByOperationalUrgency(tasks.filter((task) => isModifiedSince(task, 12))),
-    created: sortByOperationalUrgency(tasks.filter((task) => isCreatedSince(task, 12)))
+    modified: sortByOperationalUrgency(safeTasks.filter((task) => isModifiedSince(task, 12))),
+    created: sortByOperationalUrgency(safeTasks.filter((task) => isCreatedSince(task, 12)))
   };
   const sections = {
     overdue: allSections.overdue.slice(0, 8),
@@ -378,7 +396,7 @@ export default function ShiftHandover({
 
   function updateShiftNote(value) {
     setShiftNote(value);
-    window.localStorage.setItem(SHIFT_NOTE_KEY, value);
+    writeStorage(SHIFT_NOTE_KEY, value);
   }
 
   function exportShift() {
@@ -448,12 +466,17 @@ export default function ShiftHandover({
             </div>
             <AlertTriangle size={18} aria-hidden="true" />
           </div>
-          {shiftFocusTasks.map((task) => (
-            <button type="button" key={task.id} onClick={() => onEdit(task)}>
-              <strong>{task.title}</strong>
-              <span>{task.category} · {task.priority} · {formatDate(task.due_date)}</span>
-            </button>
-          ))}
+          {shiftFocusTasks.map((task) => {
+            const safeTask = normalizeShiftTask(task);
+            return (
+              <button type="button" key={safeTask.id} onClick={() => onEdit(safeTask)}>
+                <strong>{safeTask.title}</strong>
+                <span>
+                  {safeTask.category} · {safeTask.priority} · {formatDate(safeTask.due_date)}
+                </span>
+              </button>
+            );
+          })}
           {shiftFocusTasks.length === 0 && (
             <div className="empty-state compact">Aucune priorité immédiate.</div>
           )}

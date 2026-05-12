@@ -1,20 +1,21 @@
 import * as staticApi from './staticApi.js';
+import { readStorage, removeStorage, writeStorage } from './safeStorage.js';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
 const TOKEN_KEY = 'overviewReceptionAccessToken';
 const STATIC_MODE = import.meta.env.VITE_STATIC_MODE === 'true';
 
 export function getStoredToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  return readStorage(TOKEN_KEY);
 }
 
 export function clearAccessToken() {
-  localStorage.removeItem(TOKEN_KEY);
+  removeStorage(TOKEN_KEY);
 }
 
 function storeAccessToken(token) {
   if (token) {
-    localStorage.setItem(TOKEN_KEY, token);
+    writeStorage(TOKEN_KEY, token);
   }
 }
 

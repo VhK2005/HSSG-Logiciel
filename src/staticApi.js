@@ -1,4 +1,5 @@
 import { CATEGORIES, PRIORITIES, STATUSES } from './constants.js';
+import { readStorage, writeStorage } from './safeStorage.js';
 import { DEFAULT_ADMIN_SETTINGS } from './templateDefaults.js';
 
 const DB_KEY = 'overviewReceptionStaticDbV1';
@@ -76,8 +77,12 @@ function ensureDbShape(db) {
   next.histories = Array.isArray(next.histories) ? next.histories : [];
   next.reads = Array.isArray(next.reads) ? next.reads : [];
   next.settings = sanitizeSettings(next.settings);
+  next.tasks = normalizeStoredTasks(next.tasks);
   next.nextUserId = Number(next.nextUserId) || Math.max(1, ...next.users.map((user) => user.id)) + 1;
-  next.nextTaskId = Number(next.nextTaskId) || Math.max(0, ...next.tasks.map((task) => task.id)) + 1;
+  next.nextTaskId = Math.max(
+    Number(next.nextTaskId) || 1,
+    Math.max(0, ...next.tasks.map((task) => task.id)) + 1
+  );
   next.nextHistoryId =
     Number(next.nextHistoryId) || Math.max(0, ...next.histories.map((row) => row.id)) + 1;
 
@@ -89,11 +94,50 @@ function ensureDbShape(db) {
   return next;
 }
 
-function loadDb() {
-  if (typeof localStorage === 'undefined') return defaultDb();
+function normalizeStoredTasks(tasks) {
+  const usedIds = new Set();
+  let nextGeneratedId = Math.max(0, ...tasks.map((task) => Number(task?.id) || 0)) + 1;
 
+  return tasks.map((task, index) => {
+    let id = Number(task?.id) || nextGeneratedId++;
+    if (usedIds.has(id)) {
+      id = nextGeneratedId++;
+    }
+    usedIds.add(id);
+
+    const stamp = nowIso();
+    const status = ensureAllowed(task?.status, STATUSES, 'À faire');
+    const updatedAt = cleanText(task?.updated_at, stamp);
+    const completedAt =
+      status === 'Fait'
+        ? cleanText(task?.completed_at, updatedAt)
+        : task?.completed_at || null;
+
+    return {
+      id,
+      title: cleanText(task?.title, `Consigne ${index + 1}`),
+      description: typeof task?.description === 'string' ? task.description : '',
+      due_date: normalizeDate(task?.due_date),
+      priority: ensureAllowed(task?.priority, PRIORITIES, 'Normale'),
+      category: ensureAllowed(task?.category, CATEGORIES, 'Autre'),
+      status,
+      created_at: cleanText(task?.created_at, updatedAt),
+      updated_at: updatedAt,
+      completed_at: completedAt,
+      archived_at: task?.archived_at || null,
+      is_archived: Boolean(task?.is_archived),
+      created_by_user_id: task?.created_by_user_id ?? null,
+      created_by_name: cleanText(task?.created_by_name, 'Non renseigné'),
+      completed_by_user_id: task?.completed_by_user_id ?? null,
+      completed_by_name: completedAt ? cleanText(task?.completed_by_name, 'Non renseigné') : null,
+      is_demo: Boolean(task?.is_demo)
+    };
+  });
+}
+
+function loadDb() {
   try {
-    const db = ensureDbShape(JSON.parse(localStorage.getItem(DB_KEY) || 'null'));
+    const db = ensureDbShape(JSON.parse(readStorage(DB_KEY, 'null') || 'null'));
     saveDb(db);
     return db;
   } catch {
@@ -104,9 +148,7 @@ function loadDb() {
 }
 
 function saveDb(db) {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(DB_KEY, JSON.stringify(db));
-  }
+  writeStorage(DB_KEY, JSON.stringify(db));
   return db;
 }
 
@@ -157,8 +199,7 @@ function sanitizeSettings(payload = {}) {
 }
 
 function currentToken() {
-  if (typeof localStorage === 'undefined') return null;
-  return localStorage.getItem(TOKEN_KEY);
+  return readStorage(TOKEN_KEY);
 }
 
 function cleanExpiredSessions(db) {

@@ -625,12 +625,35 @@ summary:focus-visible {
 .loading-state,
 .empty-state,
 .empty-column,
-.view-note {
+.view-note,
+.view-error-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
   padding: 16px;
   color: var(--muted);
+}
+
+.view-error-panel {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  border-color: rgba(255, 111, 106, 0.36);
+  background:
+    linear-gradient(135deg, rgba(255, 111, 106, 0.1), rgba(98, 198, 255, 0.04)),
+    var(--panel);
+}
+
+.view-error-panel strong {
+  color: var(--danger);
+}
+
+.view-error-panel pre {
+  max-width: 100%;
+  overflow: auto;
+  margin: 0;
+  color: #ffc6c3;
+  white-space: pre-wrap;
 }
 
 .view-note {
@@ -3027,6 +3050,49 @@ textarea {
   font-size: 0.9rem;
 }
 
+.startup-error {
+  display: grid;
+  gap: 12px;
+  width: min(520px, calc(100vw - 32px));
+  margin: 12vh auto;
+  border: 1px solid rgba(255, 111, 106, 0.34);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 111, 106, 0.12), rgba(98, 198, 255, 0.06)),
+    rgba(8, 18, 33, 0.94);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.startup-error h1,
+.startup-error p {
+  margin: 0;
+}
+
+.startup-error p {
+  color: var(--muted);
+}
+
+.startup-error pre {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(2, 7, 18, 0.65);
+  color: var(--danger);
+  padding: 10px;
+  white-space: pre-wrap;
+}
+
+.startup-error button {
+  justify-self: start;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: #ffffff;
+  padding: 10px 14px;
+  font-weight: 800;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -3274,7 +3340,8 @@ body {
 .auth-shell {
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background:
     linear-gradient(135deg, rgba(98, 198, 255, 0.16), transparent 34%),
     linear-gradient(315deg, rgba(219, 184, 110, 0.13), transparent 32%),
@@ -3747,10 +3814,16 @@ textarea,
 @media (max-width: 900px) {
   .auth-stage {
     grid-template-columns: 1fr;
+    align-content: start;
+    min-height: auto;
   }
 
   .auth-showcase {
-    min-height: 250px;
+    min-height: 230px;
+  }
+
+  .auth-panel {
+    align-self: stretch;
   }
 
   .auth-board {

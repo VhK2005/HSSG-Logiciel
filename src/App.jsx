@@ -43,6 +43,7 @@ import {
 import Admin from './components/Admin.jsx';
 import Archives from './components/Archives.jsx';
 import CalendarView from './components/CalendarView.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 import Kanban from './components/Kanban.jsx';
 import Overview from './components/Overview.jsx';
 import PersonalStats from './components/PersonalStats.jsx';
@@ -55,6 +56,7 @@ import {
   STATUS_LABELS
 } from './constants.js';
 import { DEFAULT_ADMIN_SETTINGS } from './templateDefaults.js';
+import { readStorage, writeStorage } from './safeStorage.js';
 import {
   isDueInKanbanWindow,
   isHiddenFromKanban,
@@ -345,8 +347,7 @@ function SidebarClock() {
 
 function AlertBanner({ alertCounts, onNavigate }) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.localStorage.getItem(NOTIFICATION_KEY) === '1';
+    return readStorage(NOTIFICATION_KEY) === '1';
   });
   const [lastSignature, setLastSignature] = useState('');
   const totalAlerts = alertCounts.overdue + alertCounts.j1 + alertCounts.urgent;
@@ -371,7 +372,7 @@ function AlertBanner({ alertCounts, onNavigate }) {
     if (!canUseNotifications) return;
     const permission = await window.Notification.requestPermission();
     if (permission === 'granted') {
-      window.localStorage.setItem(NOTIFICATION_KEY, '1');
+      writeStorage(NOTIFICATION_KEY, '1');
       setNotificationsEnabled(true);
     }
   }
@@ -952,7 +953,9 @@ function HotelApp({ onLock, currentUser }) {
           Mode GitHub Pages : l’application tourne sans serveur. Les données sont stockées dans ce navigateur.
         </div>
       )}
-      {loading ? <div className="loading-state">Chargement des consignes...</div> : content}
+      <ErrorBoundary resetKey={page} onReset={() => setPage('overview')}>
+        {loading ? <div className="loading-state">Chargement des consignes...</div> : content}
+      </ErrorBoundary>
       {editingTask && (
         <TaskModal
           task={editingTask}
