@@ -2205,7 +2205,9 @@ textarea {
   gap: 6px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(12, 29, 51, 0.86);
+  background:
+    linear-gradient(145deg, rgba(98, 198, 255, 0.08), transparent 70%),
+    rgba(12, 29, 51, 0.86);
   padding: 12px;
 }
 
@@ -2221,27 +2223,143 @@ textarea {
 
 .security-status-grid strong {
   color: #ffffff;
-  font-size: 1.08rem;
+  font-size: clamp(0.96rem, 1.2vw, 1.08rem);
+  line-height: 1.18;
 }
 
-.security-notice {
-  border: 1px solid rgba(242, 162, 58, 0.3);
+.security-verdict {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 16px;
+  border: 1px solid rgba(85, 209, 143, 0.28);
   border-radius: 8px;
   background:
-    linear-gradient(90deg, rgba(242, 162, 58, 0.1), rgba(98, 198, 255, 0.04)),
+    linear-gradient(135deg, rgba(85, 209, 143, 0.12), rgba(98, 198, 255, 0.08)),
     rgba(12, 29, 51, 0.86);
-  padding: 12px;
+  padding: 16px;
 }
 
-.security-notice strong {
-  color: #ffc46b;
+.security-verdict h3,
+.security-deck h3,
+.security-build h3,
+.security-habits h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1rem;
 }
 
-.security-notice p {
-  margin: 5px 0 0;
+.security-verdict p,
+.security-deck li,
+.security-flow small {
   color: #c3d2e4;
   font-size: 0.9rem;
   line-height: 1.45;
+}
+
+.security-verdict p {
+  margin: 7px 0 0;
+}
+
+.security-verdict > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(85, 209, 143, 0.28);
+  border-radius: 999px;
+  background: rgba(85, 209, 143, 0.1);
+  color: #a8f3ca;
+  padding: 7px 10px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.security-deck {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.security-deck article,
+.security-build,
+.security-habits {
+  border: 1px solid rgba(146, 167, 191, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent),
+    rgba(8, 20, 37, 0.78);
+  padding: 14px;
+}
+
+.security-deck article > div,
+.security-build-title,
+.security-habits > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.security-deck svg,
+.security-build svg,
+.security-habits svg {
+  flex: 0 0 auto;
+  color: var(--accent-dark);
+}
+
+.security-deck article:nth-child(2) {
+  border-color: rgba(242, 162, 58, 0.24);
+  background:
+    linear-gradient(135deg, rgba(242, 162, 58, 0.08), rgba(98, 198, 255, 0.04)),
+    rgba(8, 20, 37, 0.78);
+}
+
+.security-deck article:nth-child(2) svg {
+  color: #ffc46b;
+}
+
+.security-deck ul {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding-left: 18px;
+}
+
+.security-build {
+  display: grid;
+  gap: 13px;
+}
+
+.security-build-title {
+  align-items: flex-start;
+}
+
+.security-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.security-flow article {
+  display: grid;
+  gap: 5px;
+  min-height: 126px;
+  border: 1px solid rgba(98, 198, 255, 0.15);
+  border-radius: 8px;
+  background: rgba(12, 29, 51, 0.72);
+  padding: 12px;
+}
+
+.security-flow span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.security-flow strong {
+  color: #ffffff;
+  line-height: 1.2;
 }
 
 .security-brief {
@@ -2270,6 +2388,11 @@ textarea {
   line-height: 1.45;
 }
 
+.security-habits {
+  display: grid;
+  gap: 12px;
+}
+
 .security-checklist {
   display: flex;
   flex-wrap: wrap;
@@ -2277,9 +2400,10 @@ textarea {
 }
 
 .security-checklist span {
+  border: 1px solid rgba(146, 167, 191, 0.14);
   border-radius: 999px;
-  background: var(--panel-soft);
-  color: var(--muted);
+  background: rgba(19, 36, 58, 0.86);
+  color: #c7d5e6;
   padding: 5px 9px;
   font-size: 0.77rem;
   font-weight: 850;
@@ -3982,11 +4106,20 @@ textarea,
   .calendar-grid,
   .priority-list,
   .security-status-grid,
+  .security-verdict,
+  .security-deck,
+  .security-flow,
   .security-brief,
   .shift-layout,
   .shift-command-metrics,
   .template-editor-grid {
     grid-template-columns: 1fr;
+  }
+
+  .security-verdict > span,
+  .security-brief button {
+    justify-self: start;
+    white-space: normal;
   }
 
   .shift-column.secondary {

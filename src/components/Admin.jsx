@@ -1,7 +1,11 @@
 import {
+  AlertTriangle,
+  Blocks,
+  Cloud,
   ClipboardCheck,
   DatabaseBackup,
   Download,
+  EyeOff,
   FileJson,
   FileSpreadsheet,
   KeyRound,
@@ -12,13 +16,16 @@ import {
   Save,
   Settings2,
   ShieldCheck,
+  ShieldAlert,
   SlidersHorizontal,
+  Server,
   Trash2,
   UserPlus,
   Users,
   WandSparkles
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { CLIENT_STORAGE_MODE } from '../api.js';
 import { CATEGORIES, PRIORITIES, STATUSES } from '../constants.js';
 import { DEFAULT_QUICK_TEMPLATES } from '../templateDefaults.js';
 import { formatDateTime } from '../utils.js';
@@ -73,6 +80,24 @@ export default function Admin({
     password: '',
     role: 'reception'
   });
+  const storageLabel =
+    CLIENT_STORAGE_MODE === 'supabase'
+      ? 'GitHub Pages + Supabase'
+      : CLIENT_STORAGE_MODE === 'local'
+        ? 'Navigateur local'
+        : 'Express + SQLite';
+  const protectionLabel =
+    CLIENT_STORAGE_MODE === 'supabase'
+      ? 'RLS à contrôler'
+      : CLIENT_STORAGE_MODE === 'local'
+        ? 'Local uniquement'
+        : 'Serveur privé';
+  const directionSecuritySummary = [
+    `Overview Réception Hôtel est conçu comme un outil interne de consignes, avec comptes nominatifs, rôles Admin/Réception et sessions limitées à 16 h.`,
+    `Construction actuelle : front React/Vite, stockage ${storageLabel}, configuration par variables d’environnement et exports réservés à l’administrateur.`,
+    `Niveau à retenir : adapté aux consignes opérationnelles internes si les données restent minimisées. Ne pas saisir carte bancaire, passeport, document médical ou données client trop personnelles.`,
+    `Pour une mise en production plus sensible : HTTPS obligatoire, mots de passe forts, comptes individuels, sauvegardes protégées et idéalement backend privé ou Supabase Auth/RLS strictes.`
+  ].join('\n');
 
   useEffect(() => {
     setDraft(settings);
@@ -186,17 +211,11 @@ export default function Admin({
   }
 
   async function copySecuritySummary() {
-    const text = [
-      'Overview Réception Hôtel est un outil interne avec connexion par compte, rôles Admin/Réception, sessions serveur limitées à 16 h et base SQLite locale.',
-      'L’accès distant doit passer par HTTPS, tunnel sécurisé, VPS ou plateforme hébergée avec variables d’environnement protégées.',
-      'L’outil ne doit pas contenir de cartes bancaires, passeports, documents médicaux ou données client trop personnelles.'
-    ].join('\n');
-
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(directionSecuritySummary);
       setMessage('Résumé sécurité copié.');
     } catch {
-      setMessage('Résumé sécurité prêt à présenter : comptes, sessions 16 h, accès distant protégé, pas de données sensibles.');
+      setMessage('Résumé sécurité prêt à présenter : usage interne, données minimisées, accès protégé, production à durcir si données sensibles.');
     }
   }
 
@@ -446,7 +465,7 @@ export default function Admin({
         <div className="section-head">
           <div>
             <p className="eyebrow">Sécurité</p>
-            <h2>Protection et bonnes pratiques</h2>
+            <h2>Lecture sécurité de l’application</h2>
           </div>
           <ShieldCheck size={20} aria-hidden="true" />
         </div>
@@ -454,42 +473,110 @@ export default function Admin({
         <div className="security-status-grid">
           <article>
             <LockKeyhole size={18} aria-hidden="true" />
-            <span>Accès par compte</span>
-            <strong>Actif</strong>
+            <span>Accès</span>
+            <strong>Comptes internes</strong>
           </article>
           <article>
             <KeyRound size={18} aria-hidden="true" />
-            <span>Sessions serveur</span>
+            <span>Sessions</span>
             <strong>16 h</strong>
           </article>
           <article>
             <Users size={18} aria-hidden="true" />
-            <span>Utilisateurs actifs</span>
+            <span>Comptes actifs</span>
             <strong>{activeUsers}</strong>
           </article>
           <article>
             <DatabaseBackup size={18} aria-hidden="true" />
-            <span>Sauvegarde</span>
-            <strong>SQLite</strong>
+            <span>Stockage</span>
+            <strong>{storageLabel}</strong>
           </article>
         </div>
 
-        <div className="security-notice">
-          <strong>Données à éviter</strong>
-          <p>
-            Ne stockez pas de carte bancaire, passeport, document médical ou information client trop
-            personnelle. L’outil est prévu pour des consignes opérationnelles internes.
-          </p>
+        <div className="security-verdict">
+          <div>
+            <p className="eyebrow">Ce qu’il faut retenir</p>
+            <h3>Correct pour un usage interne, à condition de rester sur des consignes opérationnelles.</h3>
+            <p>
+              L’application évite le carnet papier, limite les accès par rôle et garde une trace des
+              créations, finalisations et modifications. Ce n’est pas un coffre-fort documentaire :
+              les informations saisies doivent rester utiles au service, courtes et non sensibles.
+            </p>
+          </div>
+          <span>
+            <ShieldAlert size={17} aria-hidden="true" />
+            Niveau interne
+          </span>
+        </div>
+
+        <div className="security-deck">
+          <article>
+            <div>
+              <ShieldCheck size={18} aria-hidden="true" />
+              <h3>Ce qui protège déjà</h3>
+            </div>
+            <ul>
+              <li>Comptes nominatifs, rôle Admin séparé du rôle Réception.</li>
+              <li>Onglet Admin masqué aux réceptionnistes.</li>
+              <li>Sessions limitées à 16 h et révocation lors de la désactivation d’un compte.</li>
+              <li>Variables d’environnement hors dépôt public.</li>
+              <li>Historique des changements et exports réservés à l’administrateur.</li>
+            </ul>
+          </article>
+
+          <article>
+            <div>
+              <AlertTriangle size={18} aria-hidden="true" />
+              <h3>Limites à expliquer</h3>
+            </div>
+            <ul>
+              <li>GitHub Pages publie le front : le code de l’interface est public par nature.</li>
+              <li>La clé Supabase côté navigateur est publique : la protection forte doit venir de règles RLS strictes ou d’un backend.</li>
+              <li>L’outil ne doit pas recevoir de documents d’identité, paiement, santé ou données client trop personnelles.</li>
+              <li>Pour une production sensible, préférer un serveur privé HTTPS ou Supabase Auth avec politiques par utilisateur.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div className="security-build">
+          <div className="security-build-title">
+            <Blocks size={18} aria-hidden="true" />
+            <div>
+              <p className="eyebrow">Construction</p>
+              <h3>Architecture lisible et maintenable</h3>
+            </div>
+          </div>
+          <div className="security-flow">
+            <article>
+              <Cloud size={18} aria-hidden="true" />
+              <span>Interface</span>
+              <strong>React + Vite</strong>
+              <small>Déployable sur GitHub Pages.</small>
+            </article>
+            <article>
+              <DatabaseBackup size={18} aria-hidden="true" />
+              <span>Données</span>
+              <strong>{storageLabel}</strong>
+              <small>Consignes, comptes, historiques et checklists.</small>
+            </article>
+            <article>
+              <Server size={18} aria-hidden="true" />
+              <span>Protection</span>
+              <strong>{protectionLabel}</strong>
+              <small>À renforcer si données sensibles ou usage multi-site.</small>
+            </article>
+          </div>
         </div>
 
         <div className="security-brief">
           <div>
             <p className="eyebrow">Présentation direction</p>
-            <h3>Résumé prêt à expliquer</h3>
+            <h3>Phrase prête à dire</h3>
             <p>
-              Accès par comptes internes, sessions limitées, rôles séparés, base locale SQLite et
-              exports administrateur. Pour l’accès extérieur, privilégier HTTPS, tunnel sécurisé ou
-              hébergeur avec variables d’environnement protégées.
+              L’application est adaptée à un usage interne de réception : elle centralise les consignes,
+              limite l’accès par comptes et rôles, garde une trace des actions, et doit rester limitée
+              aux informations opérationnelles non sensibles. Pour un déploiement plus critique, on
+              durcit l’hébergement, les règles Supabase ou on passe par un backend privé.
             </p>
           </div>
           <button type="button" className="ghost-action" onClick={copySecuritySummary}>
@@ -498,12 +585,21 @@ export default function Admin({
           </button>
         </div>
 
-        <div className="security-checklist">
-          <span>Admin actif : {adminUsers}</span>
-          <span>Réception actifs : {receptionUsers}</span>
-          <span>Changer Admin/admin avant production</span>
-          <span>Accès distant recommandé : tunnel sécurisé, VPS ou plateforme hébergée</span>
-          <span>Éviter l’ouverture directe d’un port internet sans protection</span>
+        <div className="security-habits">
+          <div>
+            <EyeOff size={18} aria-hidden="true" />
+            <h3>Bons réflexes réception</h3>
+          </div>
+          <div className="security-checklist">
+            <span>Admin actif : {adminUsers}</span>
+            <span>Réception actifs : {receptionUsers}</span>
+            <span>Changer Admin/admin avant démonstration réelle</span>
+            <span>Un compte par personne, pas de compte partagé</span>
+            <span>Supprimer ou désactiver les anciens accès</span>
+            <span>Ne saisir que le strict nécessaire</span>
+            <span>Pas de carte bancaire, passeport, santé, pièce jointe sensible</span>
+            <span>Accès distant : HTTPS, tunnel sécurisé, VPS ou plateforme hébergée</span>
+          </div>
         </div>
       </article>
 
