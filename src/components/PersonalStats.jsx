@@ -104,6 +104,21 @@ function ActivityList({ title, items }) {
   );
 }
 
+function PersonalDisclosure({ eyebrow, title, meta, defaultOpen = false, children }) {
+  return (
+    <details className="personal-disclosure" open={defaultOpen}>
+      <summary>
+        <div>
+          <p className="eyebrow">{eyebrow}</p>
+          <h2>{title}</h2>
+        </div>
+        {meta && <strong>{meta}</strong>}
+      </summary>
+      <div className="personal-disclosure-body">{children}</div>
+    </details>
+  );
+}
+
 export default function PersonalStats({
   tasks,
   archivedTasks,
@@ -175,7 +190,7 @@ export default function PersonalStats({
         </div>
       </section>
 
-      <section className="stats-grid" aria-label="Statistiques personnelles">
+      <section className="stats-grid personal-stats-strip" aria-label="Statistiques personnelles">
         <StatCard icon={ClipboardList} label="Créées par moi" value={createdByMe.length} />
         <StatCard icon={Hourglass} label="Encore actives" value={activeCreatedByMe.length} />
         <StatCard icon={AlertTriangle} label="En retard" value={overdueCreatedByMe.length} tone="danger" />
@@ -184,6 +199,12 @@ export default function PersonalStats({
         <StatCard icon={FolderArchive} label="Archivées" value={archivedCreatedByMe.length} />
       </section>
 
+      <PersonalDisclosure
+        eyebrow="Mes priorités"
+        title="À reprendre"
+        meta={`${priorityTasks.length} priorité${priorityTasks.length > 1 ? 's' : ''}`}
+        defaultOpen
+      >
       <section className="personal-focus-grid">
         <article className="chart-panel personal-focus-panel">
           <div className="section-head">
@@ -211,8 +232,14 @@ export default function PersonalStats({
 
         <BarChart title="Mes consignes par statut" eyebrow="Répartition" data={statusData} />
       </section>
+      </PersonalDisclosure>
 
-      <section className="charts-grid" aria-label="Analyse personnelle">
+      <PersonalDisclosure
+        eyebrow="Analyse personnelle"
+        title="Répartition de mes consignes"
+        meta={`${createdByMe.length} créée${createdByMe.length > 1 ? 's' : ''}`}
+      >
+      <section className="charts-grid personal-compact-charts" aria-label="Analyse personnelle">
         <BarChart title="Types que je crée le plus" eyebrow="Graphique" data={categoryData} />
         <BarChart
           title="Catégories opérationnelles"
@@ -224,11 +251,18 @@ export default function PersonalStats({
           })).filter((item) => item.value > 0)}
         />
       </section>
+      </PersonalDisclosure>
 
-      <section className="personal-activity-grid">
+      <PersonalDisclosure
+        eyebrow="Historique perso"
+        title="Dernières actions"
+        meta={`${recentCreated.length + recentCompleted.length} lignes`}
+      >
+      <section className="personal-activity-grid personal-compact-activity">
         <ActivityList title="Dernières créations" items={recentCreated} />
         <ActivityList title="Dernières finalisations" items={recentCompleted} />
       </section>
+      </PersonalDisclosure>
     </div>
   );
 }

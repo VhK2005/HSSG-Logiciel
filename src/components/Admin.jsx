@@ -465,8 +465,8 @@ export default function Admin({
 
           <div className="admin-users-list">
             {users.map((user) => (
-              <article key={user.id} className={user.is_active ? '' : 'inactive'}>
-                <div className="admin-user-head">
+              <details key={user.id} className={`admin-user-card ${user.is_active ? '' : 'inactive'}`}>
+                <summary className="admin-user-head">
                   <div>
                     <strong>{user.username}</strong>
                     <small>
@@ -476,7 +476,7 @@ export default function Admin({
                   <span className="admin-user-role">
                     {user.role === 'admin' ? 'Admin' : 'Réception'}
                   </span>
-                </div>
+                </summary>
 
                 <div className="admin-user-controls">
                   <label>
@@ -539,7 +539,7 @@ export default function Admin({
                     {user.is_active ? 'Désactiver' : 'Réactiver'}
                   </button>
                 </div>
-              </article>
+              </details>
             ))}
           </div>
         </article>
