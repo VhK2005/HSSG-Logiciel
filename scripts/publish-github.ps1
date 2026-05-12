@@ -63,9 +63,12 @@ function Get-RelativeUploadPath {
 function Should-UploadFile {
   param([string]$RelativePath)
 
+  $fileName = [System.IO.Path]::GetFileName($RelativePath)
   if ($RelativePath -match "^(node_modules|dist|data|\.git)/") { return $false }
-  if ($RelativePath -in @(".env")) { return $false }
+  if ($fileName -like ".env*" -and $fileName -ne ".env.example") { return $false }
   if ($RelativePath -like "*.log") { return $false }
+  if ($RelativePath -match "\.(sqlite|sqlite-.+|db|db-.+|bak|backup|pem|key|p12|pfx|crt|csr|csv|xlsx|xls)$") { return $false }
+  if ($fileName -match "(token|secret|credential|credentials)" -and $RelativePath -ne "scripts/publish-github.ps1") { return $false }
   return $true
 }
 
