@@ -85,7 +85,7 @@ Pour remplir la base avec des consignes réalistes avant une démo :
 npm run seed:demo
 ```
 
-La commande ajoute des consignes pour le Kanban, le calendrier, le Registre, la Passation et les Archives.
+La commande ajoute des consignes pour le Kanban, le calendrier, le Registre et les Archives.
 Elle remplace uniquement les anciennes consignes de démonstration qui portent les mêmes titres, sans supprimer vos consignes créées manuellement.
 
 ## Lancement en production
@@ -222,17 +222,16 @@ Pour supprimer ce token enregistré :
 
 ## Fonctionnement
 
-### Passation de shift
+### Checklists de shift
 
-L’onglet `Passation` affiche un résumé opérationnel pour le changement d’équipe :
+L’onglet `Checklists` remplace l’ancienne page de passation. Les informations opérationnelles étant déjà visibles en continu dans l’application, cet onglet sert aux routines fixes de réception :
 
-- consignes en retard
-- consignes à traiter aujourd’hui
-- consignes urgentes
-- consignes modifiées récemment
-- nouvelles consignes des 12 dernières heures
+- checklist matin
+- checklist après-midi
+- checklist nuit
 
-La page peut être imprimée ou exportée en fichier texte avec le bouton `Export TXT`.
+Les cases cochées sont mémorisées par date dans le navigateur, avec recherche, impression et export TXT.
+Le contenu détaillé des checklists peut être stocké dans les réglages de l’application plutôt que dans le dépôt GitHub public.
 
 ### Kanban
 

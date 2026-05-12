@@ -42,12 +42,12 @@ import {
 import Admin from './components/Admin.jsx';
 import Archives from './components/Archives.jsx';
 import CalendarView from './components/CalendarView.jsx';
+import Checklists from './components/Checklists.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import Kanban from './components/Kanban.jsx';
 import Overview from './components/Overview.jsx';
 import PersonalStats from './components/PersonalStats.jsx';
 import Register from './components/Register.jsx';
-import ShiftHandover from './components/ShiftHandover.jsx';
 import TaskModal from './components/TaskModal.jsx';
 import {
   CATEGORIES,
@@ -75,7 +75,7 @@ const emptyFilters = {
 const PAGE_DESCRIPTIONS = {
   overview: 'Vue rapide des urgences, retards et volumes du jour.',
   personal: 'Mes créations, finalisations et priorités à reprendre.',
-  shift: 'Résumé prêt à transmettre au prochain réceptionniste.',
+  checklists: 'Routines matin, après-midi et nuit à cocher pendant le shift.',
   kanban: 'Suivi court terme des consignes à traiter rapidement.',
   register: 'Toutes les consignes hors Kanban restent accessibles ici.',
   calendar: 'Lecture mensuelle des échéances et relances à venir.',
@@ -165,11 +165,11 @@ function AuthGate({ children }) {
           <section className="auth-showcase" aria-hidden="true">
             <div className="brand-mark">ORH</div>
             <h1>Overview Réception Hôtel</h1>
-            <span>Réception · Direction · Passation</span>
+            <span>Réception · Direction · Checklists</span>
             <div className="auth-board">
               <i>
-                <strong>Passation</strong>
-                <span>Shift soir</span>
+                <strong>Checklist</strong>
+                <span>Shift matin</span>
               </i>
               <i>
                 <strong>Relance</strong>
@@ -439,7 +439,7 @@ function Shell({
   const nav = [
     { id: 'overview', icon: Home },
     { id: 'personal', icon: BarChart3 },
-    { id: 'shift', icon: ClipboardCheck },
+    { id: 'checklists', icon: ClipboardCheck },
     { id: 'kanban', icon: Columns3 },
     { id: 'register', icon: ClipboardList },
     { id: 'calendar', icon: CalendarDays },
@@ -838,18 +838,8 @@ function HotelApp({ onLock, currentUser }) {
       />
     );
   }
-  if (page === 'shift') {
-    content = (
-      <ShiftHandover
-        tasks={tasks}
-        onEdit={setEditingTask}
-        onStatusChange={changeStatus}
-        onPriorityChange={changePriority}
-        onQuickAction={quickAction}
-        onCreateFollowUp={createFollowUp}
-        onRefresh={loadData}
-      />
-    );
+  if (page === 'checklists') {
+    content = <Checklists checklists={settings.shiftChecklists || []} />;
   }
   if (page === 'kanban') {
     content = (

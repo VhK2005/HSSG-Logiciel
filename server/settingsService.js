@@ -141,7 +141,8 @@ export const DEFAULT_ADMIN_SETTINGS = {
   defaultsVersion: DEFAULTS_VERSION,
   kanbanWindowDays: 5,
   kanbanExcludedCategories: ['Maintenance', 'Facturation', 'Direction', 'Autre'],
-  quickTemplates: DEFAULT_QUICK_TEMPLATES
+  quickTemplates: DEFAULT_QUICK_TEMPLATES,
+  shiftChecklists: []
 };
 
 const LEGACY_DEFAULT_PRIORITIES = {
@@ -214,6 +215,28 @@ function sanitizeTemplate(template, index) {
   };
 }
 
+function sanitizeChecklist(checklist, index) {
+  const labelFallback = ['Matin', 'Après-midi', 'Nuit'][index] || `Checklist ${index + 1}`;
+  const idFallback = labelFallback
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
+  return {
+    id: cleanText(checklist?.id, idFallback || crypto.randomUUID()),
+    label: cleanText(checklist?.label, labelFallback),
+    subtitle: cleanOptionalText(checklist?.subtitle),
+    items: Array.isArray(checklist?.items)
+      ? checklist.items
+          .map((item) => cleanText(item))
+          .filter(Boolean)
+          .slice(0, 80)
+      : []
+  };
+}
+
 export function sanitizeSettings(payload = {}) {
   const source = {
     ...DEFAULT_ADMIN_SETTINGS,
@@ -230,7 +253,10 @@ export function sanitizeSettings(payload = {}) {
     kanbanExcludedCategories: Array.isArray(source.kanbanExcludedCategories)
       ? source.kanbanExcludedCategories.filter((category) => CATEGORIES.includes(category))
       : DEFAULT_ADMIN_SETTINGS.kanbanExcludedCategories,
-    quickTemplates: templateSource.slice(0, 20).map(sanitizeTemplate)
+    quickTemplates: templateSource.slice(0, 20).map(sanitizeTemplate),
+    shiftChecklists: Array.isArray(source.shiftChecklists)
+      ? source.shiftChecklists.slice(0, 6).map(sanitizeChecklist)
+      : []
   };
 }
 

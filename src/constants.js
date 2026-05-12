@@ -30,7 +30,7 @@ export const PRIORITY_WEIGHT = {
 export const STATUS_LABELS = {
   overview: 'Overview',
   personal: 'Stats perso',
-  shift: 'Passation',
+  checklists: 'Checklists',
   kanban: 'Kanban',
   register: 'Registre',
   calendar: 'Calendrier',

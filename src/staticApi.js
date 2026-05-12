@@ -194,7 +194,20 @@ function sanitizeSettings(payload = {}) {
       : clone(DEFAULT_ADMIN_SETTINGS.kanbanExcludedCategories),
     quickTemplates: Array.isArray(source.quickTemplates)
       ? source.quickTemplates.slice(0, 20)
-      : clone(DEFAULT_ADMIN_SETTINGS.quickTemplates)
+      : clone(DEFAULT_ADMIN_SETTINGS.quickTemplates),
+    shiftChecklists: Array.isArray(source.shiftChecklists)
+      ? source.shiftChecklists.slice(0, 6).map((checklist, index) => ({
+          id: cleanText(checklist?.id, `checklist-${index + 1}`),
+          label: cleanText(checklist?.label, `Checklist ${index + 1}`),
+          subtitle: typeof checklist?.subtitle === 'string' ? checklist.subtitle.trim() : '',
+          items: Array.isArray(checklist?.items)
+            ? checklist.items
+                .map((item) => cleanText(item))
+                .filter(Boolean)
+                .slice(0, 80)
+            : []
+        }))
+      : []
   };
 }
 

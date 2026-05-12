@@ -133,5 +133,6 @@ export const DEFAULT_ADMIN_SETTINGS = {
   defaultsVersion: 2,
   kanbanWindowDays: 5,
   kanbanExcludedCategories: ['Maintenance', 'Facturation', 'Direction', 'Autre'],
-  quickTemplates: DEFAULT_QUICK_TEMPLATES
+  quickTemplates: DEFAULT_QUICK_TEMPLATES,
+  shiftChecklists: []
 };
