@@ -83,6 +83,15 @@ const PAGE_DESCRIPTIONS = {
 
 const NOTIFICATION_KEY = 'overviewReceptionBrowserNotifications';
 const AUTO_REFRESH_MS = 15000;
+const BRAND_LOGO_SRC = `${import.meta.env.BASE_URL}logo.svg`;
+
+function BrandMark() {
+  return (
+    <div className="brand-mark">
+      <img src={BRAND_LOGO_SRC} alt="" aria-hidden="true" />
+    </div>
+  );
+}
 
 function AuthGate({ children }) {
   const [checking, setChecking] = useState(true);
@@ -143,7 +152,7 @@ function AuthGate({ children }) {
       <div className="auth-shell">
         <div className="auth-stage">
           <div className="auth-showcase">
-            <div className="brand-mark">ORH</div>
+            <BrandMark />
             <h1>Overview Réception Hôtel</h1>
             <span>Chargement de l’espace réception...</span>
           </div>
@@ -157,7 +166,7 @@ function AuthGate({ children }) {
       <div className="auth-shell">
         <div className="auth-stage">
           <section className="auth-showcase" aria-hidden="true">
-            <div className="brand-mark">ORH</div>
+            <BrandMark />
             <h1>Overview Réception Hôtel</h1>
             <span>Réception · Direction · Checklists</span>
             <div className="auth-board">
@@ -182,7 +191,7 @@ function AuthGate({ children }) {
 
           <form className="auth-panel" onSubmit={submitPassword}>
             <div className="auth-panel-head">
-              <div className="brand-mark">ORH</div>
+              <BrandMark />
               <div>
                 <p className="eyebrow">Accès sécurisé</p>
                 <h1>Connexion</h1>
@@ -449,7 +458,7 @@ function Shell({
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <div className="brand-mark">ORH</div>
+          <BrandMark />
           <div>
             <strong>Overview</strong>
             <span>Réception Hôtel</span>
