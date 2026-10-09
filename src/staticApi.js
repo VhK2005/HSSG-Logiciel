@@ -340,7 +340,9 @@ export function loginUser(username, password) {
   }
 
   const stamp = nowIso();
-  const token = `static-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const bytes = new Uint8Array(32);
+  globalThis.crypto.getRandomValues(bytes);
+  const token = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
   const expiresAt = new Date(Date.now() + SESSION_HOURS * 60 * 60 * 1000).toISOString();
   user.last_login_at = stamp;
   user.updated_at = stamp;
@@ -412,7 +414,7 @@ export function createAdminUser(payload) {
   const role = payload.role === 'admin' ? 'admin' : 'reception';
 
   if (!username) throw createError('Le nom utilisateur est obligatoire.');
-  if (password.length < 4) throw createError('Le mot de passe doit contenir au moins 4 caractères.');
+  if (password.length < 12) throw createError('Le mot de passe doit contenir au moins 12 caractères.');
   if (db.users.some((user) => user.username.toLowerCase() === username.toLowerCase())) {
     throw createError('Ce nom utilisateur existe déjà.', 409);
   }
@@ -461,16 +463,17 @@ export function updateAdminUser(id, payload) {
 
   if (Object.prototype.hasOwnProperty.call(payload, 'password')) {
     const password = String(payload.password || '');
-    if (password.length < 4) {
-      throw createError('Le mot de passe doit contenir au moins 4 caractères.');
+    if (password.length < 12) {
+      throw createError('Le mot de passe doit contenir au moins 12 caractères.');
     }
     user.password = password;
   }
 
+  const roleChanged = user.role !== nextRole;
   user.role = nextRole;
   user.is_active = nextActive;
   user.updated_at = nowIso();
-  if (!user.is_active) {
+  if (!user.is_active || Object.prototype.hasOwnProperty.call(payload, 'password') || roleChanged) {
     db.sessions = db.sessions.filter((session) => session.user_id !== user.id);
   }
   saveDb(db);

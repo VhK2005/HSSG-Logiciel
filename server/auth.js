@@ -214,8 +214,8 @@ export function createUser(payload) {
     throw error;
   }
 
-  if (password.length < 4) {
-    const error = new Error('Le mot de passe doit contenir au moins 4 caractères.');
+  if (password.length < 12) {
+    const error = new Error('Le mot de passe doit contenir au moins 12 caractères.');
     error.status = 400;
     throw error;
   }
@@ -245,8 +245,8 @@ export function updateUser(id, payload, currentUser) {
   const wantsPassword = Object.prototype.hasOwnProperty.call(payload, 'password');
   const password = String(payload.password || '');
 
-  if (wantsPassword && password.length < 4) {
-    const error = new Error('Le mot de passe doit contenir au moins 4 caractères.');
+  if (wantsPassword && password.length < 12) {
+    const error = new Error('Le mot de passe doit contenir au moins 12 caractères.');
     error.status = 400;
     throw error;
   }
@@ -278,7 +278,7 @@ export function updateUser(id, payload, currentUser) {
     if (wantsPassword) {
       updateUserPassword.run(hashPassword(password), stamp, id);
     }
-    if (!nextActive) {
+    if (!nextActive || wantsPassword || nextRole !== user.role) {
       deleteSessionsByUser.run(id);
     }
   });

@@ -16,3 +16,16 @@ test('backup excludes credentials, CSV neutralizes formulas and J-1 preserves st
   const csv = await api.downloadAdminFile('/api/admin/export?format=csv').blob.text();
   assert.ok(csv.includes("'=1+1"));
 });
+
+
+test('session tokens are cryptographic and password changes revoke previous sessions', () => {
+  const session = api.loginUser('Admin', 'admin');
+  assert.match(session.token, /^[0-9a-f]{64}$/);
+  writeStorage('overviewReceptionAccessToken', session.token);
+  assert.throws(() => api.createAdminUser({username:'weak',password:'abcd',role:'reception'}));
+  const user = api.createAdminUser({username:'ReceptionTest',password:'strong-password-123',role:'reception'});
+  const reception = api.loginUser('ReceptionTest', 'strong-password-123');
+  api.updateAdminUser(user.id, {password:'replacement-password-456'});
+  writeStorage('overviewReceptionAccessToken', reception.token);
+  assert.throws(() => api.fetchCurrentUser(), {status:401});
+});

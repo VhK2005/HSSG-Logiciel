@@ -1,5 +1,5 @@
 import * as staticApi from './staticApi.js';
-import { readStorage, writeStorage } from './safeStorage.js';
+import { readStorage, writeStorage, removeStorage, useMemoryStorage } from './safeStorage.js';
 
 const DB_KEY = 'overviewReceptionStaticDbV1';
 const STATE_TABLE = import.meta.env.VITE_SUPABASE_TABLE || 'overview_reception_state';
@@ -18,6 +18,13 @@ const REMOTE_CACHE_MS = Math.max(
   500,
   Number(import.meta.env.VITE_SUPABASE_CACHE_MS || 2500) || 2500
 );
+if (SUPABASE_URL && SUPABASE_KEY) useMemoryStorage(DB_KEY);
+
+export function clearSensitiveCache() {
+  remoteCache = { db: null, fetchedAt: 0 };
+  removeStorage(DB_KEY);
+}
+
 let operationQueue = Promise.resolve();
 let remoteCache = {
   db: null,

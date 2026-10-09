@@ -4,22 +4,7 @@ import App from './App.jsx';
 import './styles.css';
 import './vice-versa.css';
 
-const STARTUP_LOGO_SRC = `${import.meta.env.BASE_URL}logo.svg`;
-
-function renderStartupError(error) {
-  const root = document.getElementById('root');
-  if (!root) return;
-
-  root.innerHTML = `
-    <div class="startup-error">
-      <div class="brand-mark"><img src="${STARTUP_LOGO_SRC}" alt="" aria-hidden="true" /></div>
-      <h1>Vice Versa — Carnet de consignes</h1>
-      <p>Le chargement de l’application a été interrompu.</p>
-      <pre>${String(error?.message || error || 'Erreur inconnue')}</pre>
-      <button type="button" onclick="window.location.reload()">Recharger</button>
-    </div>
-  `;
-}
+import { renderStartupError } from './startupError.js';
 
 window.addEventListener('error', (event) => {
   renderStartupError(event.error || event.message);

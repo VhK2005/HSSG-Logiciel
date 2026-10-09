@@ -1,4 +1,12 @@
 const memoryStore = new Map();
+const volatileKeys = new Set();
+
+// Cloud database snapshots must never persist on shared reception computers.
+export function useMemoryStorage(key) {
+  volatileKeys.add(key);
+  try { window.localStorage.removeItem(key); } catch { /* Storage may be unavailable. */ }
+}
+
 
 function canUseLocalStorage() {
   try {
@@ -16,7 +24,7 @@ const useLocalStorage = canUseLocalStorage();
 
 export function readStorage(key, fallback = null) {
   try {
-    if (useLocalStorage) {
+    if (useLocalStorage && !volatileKeys.has(key)) {
       const value = window.localStorage.getItem(key);
       return value === null ? fallback : value;
     }
@@ -32,7 +40,7 @@ export function writeStorage(key, value) {
   memoryStore.set(key, storedValue);
 
   try {
-    if (useLocalStorage) {
+    if (useLocalStorage && !volatileKeys.has(key)) {
       window.localStorage.setItem(key, storedValue);
     }
   } catch {
@@ -44,7 +52,7 @@ export function removeStorage(key) {
   memoryStore.delete(key);
 
   try {
-    if (useLocalStorage) {
+    if (useLocalStorage && !volatileKeys.has(key)) {
       window.localStorage.removeItem(key);
     }
   } catch {

@@ -306,8 +306,8 @@ export default function Admin({
 
   async function resetUserPassword(user) {
     const password = passwordDrafts[user.id] || '';
-    if (password.length < 4) {
-      setMessage('Le mot de passe doit contenir au moins 4 caractères.');
+    if (password.length < 12) {
+      setMessage('Le mot de passe doit contenir au moins 12 caractères.');
       return;
     }
 
@@ -443,7 +443,7 @@ export default function Admin({
                 type="password"
                 value={userForm.password}
                 onChange={(event) => setUserForm({ ...userForm, password: event.target.value })}
-                minLength={4}
+                minLength={12}
                 required
               />
             </label>
@@ -500,7 +500,7 @@ export default function Admin({
                     Nouveau mot de passe
                     <input
                       type="password"
-                      minLength={4}
+                      minLength={12}
                       value={passwordDrafts[user.id] || ''}
                       disabled={userBusyId === user.id}
                       onChange={(event) =>
@@ -509,7 +509,7 @@ export default function Admin({
                           [user.id]: event.target.value
                         }))
                       }
-                      placeholder="4 caractères min."
+                      placeholder="12 caractères min."
                     />
                   </label>
                   <button

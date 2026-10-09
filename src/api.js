@@ -16,6 +16,7 @@ export function getStoredToken() {
 
 export function clearAccessToken() {
   removeStorage(TOKEN_KEY);
+  if (STATIC_MODE && DATA_MODE === 'supabase') supabaseApi.clearSensitiveCache();
 }
 
 function storeAccessToken(token) {
