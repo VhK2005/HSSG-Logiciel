@@ -75,7 +75,7 @@ const PAGE_DESCRIPTIONS = {
   personal: 'Mes créations, finalisations et priorités à reprendre.',
   checklists: 'Routines matin, après-midi et nuit à cocher pendant le shift.',
   kanban: 'Suivi court terme des consignes à traiter rapidement.',
-  register: 'Toutes les consignes hors Kanban restent accessibles ici.',
+  register: 'Rechercher et traiter toutes les consignes actives.',
   calendar: 'Lecture mensuelle des échéances et relances à venir.',
   archives: 'Historique des consignes terminées et restaurables.',
   admin: 'Comptes, statistiques équipe, réglages et sauvegardes.'
@@ -95,6 +95,7 @@ function BrandMark() {
 
 function AuthGate({ children }) {
   const [checking, setChecking] = useState(true);
+  const [connecting, setConnecting] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -129,14 +130,16 @@ function AuthGate({ children }) {
 
   async function submitPassword(event) {
     event.preventDefault();
+    if (connecting) return;
+    setConnecting(true);
     setError('');
     try {
       const data = await loginUser(username, password);
       setCurrentUser(data.user);
       setPassword('');
     } catch (err) {
-      setError(err.message);
-    }
+      setError(err.message === 'Failed to fetch' ? 'Connexion au service impossible. Vérifiez votre réseau puis réessayez.' : err.message);
+    } finally { setConnecting(false); }
   }
 
   function lock() {
@@ -202,10 +205,10 @@ function AuthGate({ children }) {
             <div className="password-row">
               <Lock size={18} aria-hidden="true" />
               <input
-                id="access-username"
+                id="access-username" autoComplete="username" required
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
-                placeholder="Admin"
+                placeholder="Votre identifiant"
                 autoFocus
               />
             </div>
@@ -213,16 +216,16 @@ function AuthGate({ children }) {
             <div className="password-row">
               <Lock size={18} aria-hidden="true" />
               <input
-                id="access-password"
+                id="access-password" autoComplete="current-password" required
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="admin"
+                placeholder="Votre mot de passe"
               />
             </div>
-            {error && <p className="form-error">{error}</p>}
-            <button className="primary-action" type="submit">
-              Ouvrir
+            {error && <p className="form-error" role="alert">{error}</p>}
+            <button className="primary-action" type="submit" disabled={connecting}>
+              {connecting ? 'Connexion…' : 'Se connecter'}
             </button>
           </form>
         </div>
@@ -245,6 +248,7 @@ function FilterBar({ filters, onChange, categoryOptions = CATEGORIES }) {
         <Search size={17} aria-hidden="true" />
         <input
           type="search"
+          aria-label="Rechercher une consigne"
           placeholder="Rechercher une consigne"
           value={filters.search}
           onChange={(event) => onChange({ ...filters, search: event.target.value })}
@@ -398,17 +402,17 @@ function AlertBanner({ alertCounts, onNavigate }) {
       </div>
       <div className="alert-banner-actions">
         {alertCounts.overdue > 0 && (
-          <button type="button" onClick={() => onNavigate('calendar')}>
+          <button type="button" onClick={() => onNavigate('overdue')}>
             Retards
           </button>
         )}
         {alertCounts.j1 > 0 && (
-          <button type="button" onClick={() => onNavigate('kanban')}>
+          <button type="button" onClick={() => onNavigate('j1')}>
             J-1
           </button>
         )}
         {alertCounts.urgent > 0 && (
-          <button type="button" onClick={() => onNavigate('overview')}>
+          <button type="button" onClick={() => onNavigate('urgent')}>
             Urgences
           </button>
         )}
@@ -495,7 +499,7 @@ function Shell({
               <button
                 className="sidebar-alert danger"
                 type="button"
-                onClick={() => setPage('calendar')}
+                onClick={() => setPage('overdue')}
                 aria-label={`${alertCounts.overdue} consignes en retard`}
               >
                 <span className="nav-text">Retard</span>
@@ -504,7 +508,7 @@ function Shell({
               <button
                 className="sidebar-alert warning"
                 type="button"
-                onClick={() => setPage('kanban')}
+                onClick={() => setPage('j1')}
                 aria-label={`${alertCounts.j1} consignes à J-1`}
               >
                 <span className="nav-text">J-1</span>
@@ -513,7 +517,7 @@ function Shell({
               <button
                 className="sidebar-alert urgent"
                 type="button"
-                onClick={() => setPage('overview')}
+                onClick={() => setPage('urgent')}
                 aria-label={`${alertCounts.urgent} consignes urgentes`}
               >
                 <span className="nav-text">Urgent</span>
@@ -591,7 +595,7 @@ function HotelApp({ onLock, currentUser }) {
         onLock();
         return;
       }
-      if (!silent) setError(err.message);
+      setError(err.message === 'Failed to fetch' ? 'Connexion interrompue. Vérifiez le réseau puis réessayez.' : err.message);
     } finally {
       setLoading(false);
     }
@@ -641,15 +645,13 @@ function HotelApp({ onLock, currentUser }) {
     () => operationalTasks.filter((task) => isDueInKanbanWindow(task, kanbanWindowDays)),
     [operationalTasks, kanbanWindowDays]
   );
-  const registerTasks = useMemo(
-    () =>
-      tasks.filter(
-        (task) =>
-          isHiddenFromKanban(task, kanbanExcludedCategories) ||
-          !isDueInKanbanWindow(task, kanbanWindowDays)
-      ),
-    [tasks, kanbanExcludedCategories, kanbanWindowDays]
-  );
+  const [operationalFilter, setOperationalFilter] = useState('all');
+  const registerTasks = tasks;
+  function navigate(next) {
+    if (['overdue', 'j1', 'urgent'].includes(next)) {
+      setOperationalFilter(next); setRegisterFilters(emptyFilters); setPage('register');
+    } else { setOperationalFilter('all'); setPage(next); }
+  }
 
   const filteredKanbanTasks = useMemo(
     () => kanbanTasks.filter((task) => matchesTask(task, filters)),
@@ -662,8 +664,8 @@ function HotelApp({ onLock, currentUser }) {
   );
 
   const filteredRegisterTasks = useMemo(
-    () => registerTasks.filter((task) => matchesTask(task, registerFilters)),
-    [registerTasks, registerFilters]
+    () => registerTasks.filter((task) => matchesTask(task, registerFilters) && (operationalFilter === 'all' || (task.status !== 'Fait' && (operationalFilter === 'overdue' ? isOverdue(task) : operationalFilter === 'j1' ? daysUntil(task.due_date) === 1 : task.priority === 'Urgente')))),
+    [registerTasks, registerFilters, operationalFilter]
   );
 
   const registerCategoryOptions = useMemo(
@@ -891,6 +893,7 @@ function HotelApp({ onLock, currentUser }) {
           onChange={setRegisterFilters}
           categoryOptions={visibleRegisterCategories}
         />
+        {operationalFilter !== 'all' && <div className="view-note">Filtre : {{overdue: 'En retard', j1: 'À J-1', urgent: 'Urgentes'}[operationalFilter]} <button type="button" onClick={() => setOperationalFilter('all')}>Voir toutes les consignes</button></div>}
         <Register
           tasks={filteredRegisterTasks}
           onEdit={setEditingTask}
@@ -946,14 +949,14 @@ function HotelApp({ onLock, currentUser }) {
   return (
     <Shell
       page={page}
-      setPage={setPage}
+      setPage={navigate}
       onCreate={() => setEditingTask({})}
       onLock={onLock}
       currentUser={currentUser}
       registerCount={registerTasks.length}
       alertCounts={alertCounts}
     >
-      {error && <div className="app-alert">{error}</div>}
+      {error && <div className="app-alert" role="alert">{error} <button type="button" onClick={() => loadData()}>Réessayer</button></div>}
       <ErrorBoundary resetKey={page} onReset={() => setPage('overview')}>
         {loading ? <div className="loading-state">Chargement des consignes...</div> : content}
       </ErrorBoundary>

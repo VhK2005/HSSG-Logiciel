@@ -295,17 +295,6 @@ function runAutomationsInDb(db) {
       recordHistory(db, task.id, 'Archivage automatique', 'archived_at', null, stamp, stamp);
     }
 
-    if (
-      !task.is_archived &&
-      ['En attente', 'En cours'].includes(task.status) &&
-      task.due_date &&
-      daysUntilDueDate(task.due_date) === 1
-    ) {
-      const oldStatus = task.status;
-      task.status = 'À faire';
-      task.updated_at = stamp;
-      recordHistory(db, task.id, 'Automatisation échéance', 'status', oldStatus, 'À faire', stamp);
-    }
   }
 }
 
@@ -788,7 +777,7 @@ export function downloadAdminFile(path) {
   if (url.pathname.endsWith('/backup')) {
     return {
       filename: `overview-reception-static-backup-${stamp}.json`,
-      blob: new Blob([JSON.stringify(db, null, 2)], { type: 'application/json;charset=utf-8' })
+      blob: new Blob([JSON.stringify({ ...db, users: db.users.map(sanitizeUser), sessions: [], backup_version: 2 }, null, 2)], { type: 'application/json;charset=utf-8' })
     };
   }
 
@@ -839,5 +828,7 @@ function toCsv(rows) {
 
 function csvCell(value) {
   if (value === null || value === undefined) return '';
-  return `"${String(value).replaceAll('"', '""')}"`;
+  const text = String(value);
+  const safe = /^[\s]*[=+@-]/.test(text) ? `'${text}` : text;
+  return `"${safe.replaceAll('"', '""')}"`;
 }

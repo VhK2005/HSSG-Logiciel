@@ -118,21 +118,6 @@ export function runAutomations() {
       AND completed_at <= ?
   `);
 
-  const candidates = db.prepare(`
-    SELECT id, due_date, status
-    FROM tasks
-    WHERE is_archived = 0
-      AND status IN ('En attente', 'En cours')
-      AND due_date IS NOT NULL
-  `);
-
-  const moveToTodo = db.prepare(`
-    UPDATE tasks
-    SET status = 'À faire',
-        updated_at = ?
-    WHERE id = ?
-  `);
-
   const tx = db.transaction(() => {
     const archivableTasks = completedToArchive.all(archiveThreshold);
     archiveCompleted.run(stamp, stamp, archiveThreshold);
@@ -141,13 +126,7 @@ export function runAutomations() {
       recordHistory(task.id, 'Archivage automatique', 'archived_at', null, stamp, stamp);
     }
 
-    for (const task of candidates.all()) {
-      const days = daysUntilDueDate(task.due_date);
-      if (days === 1) {
-        moveToTodo.run(stamp, task.id);
-        recordHistory(task.id, 'Automatisation échéance', 'status', task.status, 'À faire', stamp);
-      }
-    }
+
   });
 
   tx();

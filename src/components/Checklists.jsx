@@ -21,7 +21,8 @@ const ICONS = {
 };
 
 function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function normalizeText(value, fallback = '') {
@@ -47,13 +48,13 @@ function normalizeChecklist(checklist, index) {
   };
 }
 
-function storageKey() {
-  return `overviewReceptionChecklists:${todayKey()}`;
+function storageKey(day = todayKey()) {
+  return `overviewReceptionChecklists:${day}`;
 }
 
-function readCompleted() {
+function readCompleted(day = todayKey()) {
   try {
-    return JSON.parse(readStorage(storageKey(), '{}') || '{}');
+    return JSON.parse(readStorage(storageKey(day), '{}') || '{}');
   } catch {
     return {};
   }
@@ -91,7 +92,15 @@ export default function Checklists({ checklists = [] }) {
     [checklists]
   );
   const [activeId, setActiveId] = useState(normalizedChecklists[0]?.id || '');
-  const [completed, setCompleted] = useState(readCompleted);
+  const [day, setDay] = useState(todayKey);
+  const [completed, setCompleted] = useState(() => readCompleted());
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      const next = todayKey();
+      if (next !== day) { setCompleted(readCompleted(next)); setDay(next); }
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [day]);
   const [query, setQuery] = useState('');
 
   useEffect(() => {
@@ -101,8 +110,8 @@ export default function Checklists({ checklists = [] }) {
   }, [activeId, normalizedChecklists]);
 
   useEffect(() => {
-    writeStorage(storageKey(), JSON.stringify(completed));
-  }, [completed]);
+    writeStorage(storageKey(day), JSON.stringify(completed));
+  }, [completed, day]);
 
   const activeChecklist =
     normalizedChecklists.find((checklist) => checklist.id === activeId) || normalizedChecklists[0];
@@ -179,7 +188,7 @@ export default function Checklists({ checklists = [] }) {
           <p className="eyebrow">Checklists réception</p>
           <h2>Routine de shift</h2>
           <span>
-            Suivi quotidien des tâches récurrentes. Les cases cochées se réinitialisent naturellement par date.
+            Suivi quotidien des tâches récurrentes. Validations enregistrées sur ce navigateur uniquement, pour la date locale.
           </span>
         </div>
         <div className="checklist-score">

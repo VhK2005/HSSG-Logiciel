@@ -28,11 +28,11 @@ export const PRIORITY_WEIGHT = {
 };
 
 export const STATUS_LABELS = {
-  overview: 'Overview',
+  overview: 'Aujourd’hui',
   personal: 'Stats perso',
   checklists: 'Checklists',
   kanban: 'Kanban',
-  register: 'Registre',
+  register: 'Toutes les consignes',
   calendar: 'Calendrier',
   archives: 'Archives',
   admin: 'Admin'

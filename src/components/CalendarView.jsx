@@ -91,8 +91,8 @@ export default function CalendarView({ tasks, onEdit }) {
   const todayIso = toDateInputValue(new Date());
   const overdueAll = sortByUrgency(openDatedTasks.filter(isOverdue));
   const todayAll = sortByUrgency(openDatedTasks.filter(isDueToday));
-  const overdue = overdueAll.slice(0, 8);
-  const today = todayAll.slice(0, 8);
+  const overdue = overdueAll;
+  const today = todayAll;
   const selectedDateTasks = useMemo(
     () =>
       selectedDate
@@ -192,7 +192,7 @@ export default function CalendarView({ tasks, onEdit }) {
                     <CalendarTaskChip key={task.id} task={task} onEdit={onEdit} />
                   ))}
                   {dayTasks.length > 3 && (
-                    <button className="month-more" type="button" onClick={() => onEdit(dayTasks[3])}>
+                    <button className="month-more" type="button" onClick={() => goToDate(iso)}>
                       +{dayTasks.length - 3} autre{dayTasks.length - 3 > 1 ? 's' : ''}
                     </button>
                   )}

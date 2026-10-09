@@ -140,7 +140,7 @@ export default function Overview({ tasks, onEdit, onPriorityChange }) {
     openTasks.filter(
       (task) => task.priority === 'Urgente' || isOverdue(task) || isDueToday(task)
     )
-  ).slice(0, 8);
+  );
 
   return (
     <div className="overview-page">
@@ -153,10 +153,10 @@ export default function Overview({ tasks, onEdit, onPriorityChange }) {
         <StatCard icon={ListChecks} label="Terminées récemment" value={stats.recentDone} />
       </section>
 
-      <section className="charts-grid" aria-label="Graphiques overview">
+      <details className="overview-charts"><summary>Statistiques et répartition</summary><section className="charts-grid" aria-label="Graphiques overview">
         <PieChart title="Répartition par statut" data={statusData} />
         <BarChart title="Types de consignes les plus publiés" data={typeData} />
-      </section>
+      </section></details>
 
       <section className="priority-section">
         <div className="section-head">

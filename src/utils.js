@@ -35,10 +35,11 @@ export function tomorrowDateInputValue() {
 
 export function daysUntil(dueDate) {
   if (!dueDate) return null;
-  const due = new Date(`${dueDate.slice(0, 10)}T00:00:00`);
+  const [year, month, day] = dueDate.slice(0, 10).split('-').map(Number);
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  return Math.floor((due - today) / 86400000);
+  const due = Date.UTC(year, month - 1, day);
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((due - today) / 86400000);
 }
 
 export function getDueSignal(task) {

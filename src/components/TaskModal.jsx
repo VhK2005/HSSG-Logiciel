@@ -10,7 +10,7 @@ import {
   Wrench,
   X
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchTaskHistory } from '../api.js';
 import { DEFAULT_QUICK_TEMPLATES } from '../templateDefaults.js';
 import { formatDate, formatDateTime, toDateInputValue } from '../utils.js';
@@ -124,6 +124,27 @@ export default function TaskModal({
   saving,
   quickTemplates = DEFAULT_QUICK_TEMPLATES
 }) {
+  const dialogRef = useRef(null);
+  const closeRef = useRef(onClose);
+  const savingRef = useRef(saving);
+  closeRef.current = onClose;
+  savingRef.current = saving;
+  useEffect(() => {
+    const previous = document.activeElement;
+    const dialog = dialogRef.current;
+    const selector = 'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]';
+    dialog?.querySelector(selector)?.focus();
+    function keydown(event) {
+      if (event.key === 'Escape' && !savingRef.current) { event.preventDefault(); closeRef.current(); }
+      if (event.key !== 'Tab') return;
+      const fields = [...dialog.querySelectorAll(selector)].filter(el => el.getClientRects().length);
+      const first = fields[0], last = fields.at(-1);
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    }
+    dialog?.addEventListener('keydown', keydown);
+    return () => { dialog?.removeEventListener('keydown', keydown); previous?.focus(); };
+  }, []);
   const isNewTask = !task.id;
   const [history, setHistory] = useState([]);
   const [historyError, setHistoryError] = useState('');
@@ -229,11 +250,11 @@ export default function TaskModal({
 
   return (
     <div className="modal-backdrop" role="presentation">
-      <form className="task-modal" onSubmit={submit}>
+      <form ref={dialogRef} className="task-modal" role="dialog" aria-modal="true" aria-labelledby="task-dialog-title" onSubmit={submit}>
         <div className="modal-head">
           <div>
             <p className="eyebrow">Consigne</p>
-            <h2>{task.id ? 'Modifier la consigne' : 'Nouvelle consigne'}</h2>
+            <h2 id="task-dialog-title">{task.id ? 'Modifier la consigne' : 'Nouvelle consigne'}</h2>
           </div>
           <button className="icon-only" type="button" onClick={onClose} title="Fermer">
             <X size={18} aria-hidden="true" />
@@ -310,6 +331,7 @@ export default function TaskModal({
           </div>
         )}
 
+        <p className="view-note">Utilisez une référence de réservation ou de chambre. Ne saisissez pas de numéro de carte, document d’identité ou information médicale.</p>
         {creationMode === 'standard' && <TaskFormFields form={form} setForm={setForm} />}
 
         {!isNewTask && (

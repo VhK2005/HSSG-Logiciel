@@ -4943,3 +4943,12 @@ textarea,
     box-shadow: none;
   }
 }
+
+/* Reception workflow: show actions before optional reporting. */
+.overview-page { display: flex; flex-direction: column; gap: 20px; }
+.overview-page .stats-grid { order: 0; }
+.overview-page .priority-section { order: 1; }
+.overview-charts { order: 2; }
+.overview-charts > summary { cursor: pointer; padding: 16px; }
+.icon-only { min-width: 36px; min-height: 36px; }
+@media (pointer: coarse) { button, .icon-only { min-height: 44px; } }

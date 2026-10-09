@@ -50,7 +50,7 @@ export default function Register({
         <div>
           <strong>{typedTasks.length}</strong>
           <span>
-            {openCount} consigne{openCount > 1 ? 's' : ''} active{openCount > 1 ? 's' : ''} hors Kanban
+            {openCount} consigne{openCount > 1 ? 's' : ''} active{openCount > 1 ? 's' : ''}
           </span>
         </div>
       </div>
@@ -70,7 +70,7 @@ export default function Register({
         ))}
 
         {typedTasks.length === 0 && (
-          <div className="empty-state">Aucune consigne hors Kanban ne correspond aux filtres.</div>
+          <div className="empty-state">Aucune consigne ne correspond aux filtres.</div>
         )}
       </div>
     </section>

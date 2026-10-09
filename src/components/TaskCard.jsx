@@ -65,6 +65,7 @@ export default function TaskCard({
               type="button"
               className="icon-only"
               onClick={() => setIsExpanded((current) => !current)}
+              aria-expanded={isExpanded}
               title={isExpanded ? 'Replier' : 'Déplier'}
             >
               {isExpanded ? (
