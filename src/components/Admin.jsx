@@ -117,7 +117,7 @@ export default function Admin({
         ? 'Local uniquement'
         : 'Serveur privé';
   const directionSecuritySummary = [
-    `Overview Réception Hôtel est conçu comme un outil interne de consignes, avec comptes nominatifs, rôles Admin/Réception et sessions limitées à 16 h.`,
+    `Vice Versa — Carnet de consignes est conçu comme un outil interne de consignes, avec comptes nominatifs, rôles Admin/Réception et sessions limitées à 16 h.`,
     `Construction actuelle : front React/Vite, stockage ${storageLabel}, configuration par variables d’environnement et exports réservés à l’administrateur.`,
     `Niveau à retenir : adapté aux consignes opérationnelles internes si les données restent minimisées. Ne pas saisir carte bancaire, passeport, document médical ou données client trop personnelles.`,
     `Pour une mise en production plus sensible : HTTPS obligatoire, mots de passe forts, comptes individuels, sauvegardes protégées et idéalement backend privé ou Supabase Auth/RLS strictes.`

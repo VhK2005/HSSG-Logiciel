@@ -156,7 +156,7 @@ function AuthGate({ children }) {
         <div className="auth-stage">
           <div className="auth-showcase">
             <BrandMark />
-            <h1>Overview Réception Hôtel</h1>
+            <h1>Vice Versa — Carnet de consignes</h1>
             <span>Chargement de l’espace réception...</span>
           </div>
         </div>
@@ -170,7 +170,7 @@ function AuthGate({ children }) {
         <div className="auth-stage">
           <section className="auth-showcase" aria-hidden="true">
             <BrandMark />
-            <h1>Overview Réception Hôtel</h1>
+            <h1>Vice Versa — Carnet de consignes</h1>
             <span>Réception · Direction · Checklists</span>
             <div className="auth-board">
               <i>
@@ -200,7 +200,7 @@ function AuthGate({ children }) {
                 <h1>Connexion</h1>
               </div>
             </div>
-            <p className="auth-intro">Overview Réception Hôtel</p>
+            <p className="auth-intro">Vice Versa — Carnet de consignes</p>
             <label htmlFor="access-username">Utilisateur</label>
             <div className="password-row">
               <Lock size={18} aria-hidden="true" />
@@ -372,7 +372,7 @@ function AlertBanner({ alertCounts, onNavigate }) {
     const signature = `${alertCounts.overdue}-${alertCounts.j1}-${alertCounts.urgent}`;
     if (signature === lastSignature) return;
 
-    new window.Notification('Overview Réception Hôtel', {
+    new window.Notification('Vice Versa — Carnet de consignes', {
       body: `${alertCounts.overdue} retard · ${alertCounts.j1} J-1 · ${alertCounts.urgent} urgente(s)`
     });
     setLastSignature(signature);
@@ -464,8 +464,8 @@ function Shell({
         <div className="sidebar-brand">
           <BrandMark />
           <div>
-            <strong>Overview</strong>
-            <span>Réception Hôtel</span>
+            <strong>Vice Versa</strong>
+            <span>Hôtel · Réception</span>
           </div>
         </div>
 

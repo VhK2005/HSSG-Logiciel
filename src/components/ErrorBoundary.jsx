@@ -26,7 +26,7 @@ export default class ErrorBoundary extends Component {
         <span>Les données sont conservées. Revenez à l’overview puis réessayez.</span>
         <pre>{this.state.error.message}</pre>
         <button className="primary-action" type="button" onClick={this.props.onReset}>
-          Retour Overview
+          Retour à l’accueil
         </button>
       </div>
     );
