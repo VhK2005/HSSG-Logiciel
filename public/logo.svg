@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Vice Versa">
-<rect width="64" height="64" rx="16" fill="#211b25"/>
-<rect x="5" y="5" width="54" height="54" rx="12" fill="none" stroke="#c9aa79" stroke-opacity=".55"/>
-<path d="M14 20 25 44 36 20M28 20 39 44 50 20" fill="none" stroke="#ead6b1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="32" cy="52" r="1.5" fill="#c9aa79"/>
+<rect width="64" height="64" rx="16" fill="#263f36"/>
+<rect x="5" y="5" width="54" height="54" rx="12" fill="none" stroke="#c6a975" stroke-opacity=".55"/>
+<path d="M14 20 25 44 36 20M28 20 39 44 50 20" fill="none" stroke="#f0e5cb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="32" cy="52" r="1.5" fill="#c6a975"/>
 </svg>
