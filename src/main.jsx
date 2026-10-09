@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import './styles.css';
 import './vice-versa.css';
+import './stone-layout.css';
 
 import { renderStartupError } from './startupError.js';
 

@@ -169,38 +169,21 @@ function AuthGate({ children }) {
       <div className="auth-shell">
         <div className="auth-stage">
           <section className="auth-showcase" aria-hidden="true">
-            <BrandMark />
-            <h1>Vice Versa — Carnet de consignes</h1>
-            <span>Réception · Direction · Checklists</span>
-            <div className="auth-board">
-              <i>
-                <strong>Checklist</strong>
-                <span>Shift matin</span>
-              </i>
-              <i>
-                <strong>Relance</strong>
-                <span>J-1</span>
-              </i>
-              <i>
-                <strong>Urgent</strong>
-                <span>Client VIP</span>
-              </i>
-              <i>
-                <strong>Fait</strong>
-                <span>Archivé</span>
-              </i>
-            </div>
+            <div className="lobby-signature"><BrandMark /><span>HÔTEL · RÉCEPTION</span></div>
+            <div className="stone-arch"><span /></div>
+            <div className="lobby-wordmark"><p className="eyebrow">Votre maison, votre équipe</p><h1>Vice Versa</h1><p>Les attentions se transmettent.<br />Le service continue.</p></div>
+            <span className="lobby-caption">LE CARNET DE LA RÉCEPTION</span>
           </section>
 
           <form className="auth-panel" onSubmit={submitPassword}>
             <div className="auth-panel-head">
               <BrandMark />
               <div>
-                <p className="eyebrow">Accès sécurisé</p>
-                <h1>Connexion</h1>
+                <p className="eyebrow">Espace de réception</p>
+                <h1>Bienvenue.</h1>
               </div>
             </div>
-            <p className="auth-intro">Vice Versa — Carnet de consignes</p>
+            <p className="auth-intro">Retrouvez les consignes et les attentions du jour.</p>
             <label htmlFor="access-username">Utilisateur</label>
             <div className="password-row">
               <Lock size={18} aria-hidden="true" />
