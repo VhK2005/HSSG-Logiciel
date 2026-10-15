@@ -35,5 +35,5 @@ export const STATUS_LABELS = {
   register: 'Toutes les consignes',
   calendar: 'Calendrier',
   archives: 'Archives',
-  admin: 'Admin'
+  admin: 'Réglages hôtel'
 };

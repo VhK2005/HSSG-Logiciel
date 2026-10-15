@@ -1,3 +1,4 @@
+import { DEFAULT_HOTEL_PROFILE, sanitizeHotelProfile } from '../shared/hotelProfile.js';
 import crypto from 'node:crypto';
 
 import { db } from './db.js';
@@ -138,6 +139,7 @@ export const DEFAULT_QUICK_TEMPLATES = [
 ];
 
 export const DEFAULT_ADMIN_SETTINGS = {
+  hotelProfile: DEFAULT_HOTEL_PROFILE,
   defaultsVersion: DEFAULTS_VERSION,
   kanbanWindowDays: 5,
   kanbanExcludedCategories: ['Maintenance', 'Facturation', 'Direction', 'Autre'],
@@ -248,6 +250,7 @@ export function sanitizeSettings(payload = {}) {
     : DEFAULT_QUICK_TEMPLATES;
 
   return {
+    hotelProfile: sanitizeHotelProfile(source.hotelProfile),
     defaultsVersion: DEFAULTS_VERSION,
     kanbanWindowDays: clampInteger(source.kanbanWindowDays, 5, 1, 30),
     kanbanExcludedCategories: Array.isArray(source.kanbanExcludedCategories)

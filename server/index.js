@@ -1,3 +1,4 @@
+import { isPlatformOwner, requirePlatformOwner } from './platformAccess.js';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -54,6 +55,23 @@ app.get('/api/health', (_req, res) => {
 app.post('/api/auth/login', login);
 app.post('/api/auth/logout', requireAccess, logout);
 app.get('/api/auth/me', requireAccess, me);
+
+app.get('/api/platform/access', requireAccess, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.json({ allowed: isPlatformOwner(req.user) });
+});
+
+app.get('/api/platform/overview', requireAccess, requirePlatformOwner, (_req, res, next) => {
+  try {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({
+      hotel: getAdminSettings().hotelProfile,
+      activeUsers: db.prepare('SELECT COUNT(*) AS count FROM users WHERE is_active = 1').get().count,
+      activeTasks: db.prepare('SELECT COUNT(*) AS count FROM tasks WHERE is_archived = 0').get().count,
+      archivedTasks: db.prepare('SELECT COUNT(*) AS count FROM tasks WHERE is_archived = 1').get().count
+    });
+  } catch (error) { next(error); }
+});
 
 app.get('/api/admin/settings', requireAccess, (_req, res, next) => {
   try {
