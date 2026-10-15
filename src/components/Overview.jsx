@@ -145,7 +145,7 @@ export default function Overview({ tasks, onEdit, onPriorityChange }) {
   return (
     <div className="overview-page">
       <section className="reception-hero" aria-label="Situation du jour">
-        <div><p className="eyebrow">Vice Versa · Au fil du service</p><h2>Chaque détail<br /><em>fait la différence.</em></h2><p>Les priorités de la réception, réunies au même endroit.</p></div>
+        <div><p className="eyebrow">Situation du jour</p><h2>Une réception organisée.</h2><p>Les échéances et les priorités de votre équipe.</p></div>
         <div className="hero-summary"><span className="hero-number">{openTasks.length}</span><span>consigne{openTasks.length > 1 ? 's' : ''} à suivre</span><small>{stats.today} à traiter aujourd’hui · {stats.urgent} urgente{stats.urgent > 1 ? 's' : ''}</small></div>
       </section>
       <section className="stats-grid" aria-label="Statistiques rapides">
@@ -166,7 +166,7 @@ export default function Overview({ tasks, onEdit, onPriorityChange }) {
         <div className="section-head">
           <div>
             <p className="eyebrow">À traiter en priorité · {priorities.length}</p>
-            <h2>Les attentions du jour</h2>
+            <h2>À suivre en priorité</h2>
           </div>
         </div>
 

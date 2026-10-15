@@ -117,7 +117,7 @@ export default function Admin({
         ? 'Local uniquement'
         : 'Serveur privé';
   const directionSecuritySummary = [
-    `Vice Versa — Carnet de consignes est conçu comme un outil interne de consignes, avec comptes nominatifs, rôles Admin/Réception et sessions limitées à 16 h.`,
+    `Le carnet de consignes est conçu comme un outil interne de consignes, avec comptes nominatifs, rôles Admin/Réception et sessions limitées à 16 h.`,
     `Construction actuelle : front React/Vite, stockage ${storageLabel}, configuration par variables d’environnement et exports réservés à l’administrateur.`,
     `Niveau à retenir : adapté aux consignes opérationnelles internes si les données restent minimisées. Ne pas saisir carte bancaire, passeport, document médical ou données client trop personnelles.`,
     `Pour une mise en production plus sensible : HTTPS obligatoire, mots de passe forts, comptes individuels, sauvegardes protégées et idéalement backend privé ou Supabase Auth/RLS strictes.`
@@ -410,6 +410,16 @@ export default function Admin({
 
   return (
     <section className="admin-page">
+      <article className="admin-panel hotel-profile-panel">
+        <div className="section-head"><div><p className="eyebrow">Établissement</p><h2>Votre espace de travail</h2></div><Settings2 size={20} aria-hidden="true" /></div>
+        <p className="admin-help">Ces réglages personnalisent le carnet de votre hôtel.</p>
+        <div className="hotel-profile-grid">
+          <label>Nom de l’hôtel<input maxLength={80} value={draft.hotelProfile?.name || ''} placeholder="Mon hôtel" onChange={(e) => setDraft({ ...draft, hotelProfile: { ...draft.hotelProfile, name: e.target.value } })} /></label>
+          <label>Service<input maxLength={60} value={draft.hotelProfile?.department || ''} placeholder="Réception" onChange={(e) => setDraft({ ...draft, hotelProfile: { ...draft.hotelProfile, department: e.target.value } })} /></label>
+          <label>Fuseau de l’affichage<input maxLength={80} value={draft.hotelProfile?.timezone || 'Europe/Paris'} placeholder="Europe/Paris" onChange={(e) => setDraft({ ...draft, hotelProfile: { ...draft.hotelProfile, timezone: e.target.value } })} /></label>
+        </div>
+        <p className="admin-help">Enregistrez avec le bouton en bas de page. Les routines existantes conservent leur fonctionnement actuel.</p>
+      </article>
       <AdminDisclosure
         eyebrow="Administration"
         title="Comptes et activité"
@@ -454,7 +464,7 @@ export default function Admin({
                 onChange={(event) => setUserForm({ ...userForm, role: event.target.value })}
               >
                 <option value="reception">Réception</option>
-                <option value="admin">Admin</option>
+                <option value="admin">Responsable hôtel</option>
               </select>
             </label>
             <button className="primary-action" type="submit" disabled={busy === 'user'}>
@@ -474,7 +484,7 @@ export default function Admin({
                     </small>
                   </div>
                   <span className="admin-user-role">
-                    {user.role === 'admin' ? 'Admin' : 'Réception'}
+                    {user.role === 'admin' ? 'Responsable hôtel' : 'Réception'}
                   </span>
                 </summary>
 
@@ -493,7 +503,7 @@ export default function Admin({
                       }
                     >
                       <option value="reception">Réception</option>
-                      <option value="admin">Admin</option>
+                      <option value="admin">Responsable hôtel</option>
                     </select>
                   </label>
                   <label>
