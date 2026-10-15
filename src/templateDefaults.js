@@ -1,3 +1,5 @@
+import { DEFAULT_HOTEL_PROFILE } from '../shared/hotelProfile.js';
+
 export const DEFAULT_QUICK_TEMPLATES = [
   {
     id: 'reservation-proposal',
@@ -130,6 +132,7 @@ export const DEFAULT_QUICK_TEMPLATES = [
 ];
 
 export const DEFAULT_ADMIN_SETTINGS = {
+  hotelProfile: DEFAULT_HOTEL_PROFILE,
   defaultsVersion: 2,
   kanbanWindowDays: 5,
   kanbanExcludedCategories: ['Maintenance', 'Facturation', 'Direction', 'Autre'],

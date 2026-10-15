@@ -1,3 +1,4 @@
+import { sanitizeHotelProfile } from '../shared/hotelProfile.js';
 import { CATEGORIES, PRIORITIES, STATUSES } from './constants.js';
 import { readStorage, writeStorage } from './safeStorage.js';
 import { DEFAULT_ADMIN_SETTINGS } from './templateDefaults.js';
@@ -187,6 +188,7 @@ function sanitizeSettings(payload = {}) {
   };
 
   return {
+    hotelProfile: sanitizeHotelProfile(source.hotelProfile),
     defaultsVersion: 2,
     kanbanWindowDays: Math.min(30, Math.max(1, Number(source.kanbanWindowDays) || 5)),
     kanbanExcludedCategories: Array.isArray(source.kanbanExcludedCategories)
